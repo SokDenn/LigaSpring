@@ -35,6 +35,7 @@ public class Task {
     public Integer getUserId() {
         return userId;
     }
+    public LocalDate getDateOfCompletion(){return dateOfCompletion;}
 
     public String getDateStr() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");

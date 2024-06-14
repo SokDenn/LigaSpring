@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -39,19 +40,14 @@ public class DataLoader {
     }
 
     public void downloadFromFile(int switchToTaskLoading) {
-        String csvFile;
-        if (switchToTaskLoading == 0) csvFile = csvFileUser;
-        else csvFile = csvFileTask;
+        String csvFile = switchToTaskLoading == 0 ? csvFileUser : csvFileTask;
 
-        try (CSVReader rider = new CSVReader(new FileReader(csvFile))) {
+        try (CSVReader rider = createCSVReader(new FileReader(csvFile))) {
             String[] massStrCsv;
 
             while ((massStrCsv = rider.readNext()) != null) {
                 try {
-                    Integer id = null;
-                    Integer userId = null;
-
-                    id = Integer.valueOf(massStrCsv[0]);
+                    Integer id = Integer.valueOf(massStrCsv[0]);
 
                     if (switchToTaskLoading == 0) {
                         String name = massStrCsv[1];
@@ -61,18 +57,12 @@ public class DataLoader {
                             userService.returnUserList().add(new User(id, name));
                         }
                     } else {
-                        Status status;
                         String heading = massStrCsv[1];
                         String description = massStrCsv[2];
-                        userId = Integer.valueOf(massStrCsv[3]);
+                        Integer userId = Integer.valueOf(massStrCsv[3]);
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
                         LocalDate dateOfCompletion = LocalDate.parse(massStrCsv[4], formatter);
-
-                        if (massStrCsv.length > 5) {
-                            status = Status.titleOfStatus(massStrCsv[5]);
-                        } else {
-                            status = Status.NEW;
-                        }
+                        Status status = massStrCsv.length > 5 ? Status.titleOfStatus(massStrCsv[5]) : Status.NEW;
 
                         if (id == null || heading == null || userId == null ||
                                 dateOfCompletion == null || status == null ||
@@ -81,7 +71,7 @@ public class DataLoader {
                         } else {
                             Task task = new Task(id, heading, description, dateOfCompletion, userId, status);
 
-                            if (taskService.addTask(task) == false) {
+                            if (!taskService.addTask(task)) {
                                 throw new NumberFormatException();
                             }
                         }
@@ -101,27 +91,32 @@ public class DataLoader {
     }
 
     public void saveToFile(int switchToTaskLoading) {
-        String csvFile;
-        if (switchToTaskLoading == 0) csvFile = csvFileUser;
-        else csvFile = csvFileTask;
+        String csvFile = switchToTaskLoading == 0 ? csvFileUser : csvFileTask;
 
-        try (FileWriter writerFile = new FileWriter(csvFile)) {
+        try (FileWriter fileWriter = createFileWriter(csvFile)) {
 
             if (switchToTaskLoading == 0) {
                 for (User user : userService.returnUserList()) {
-                    writerFile.write(user.getFullInfoStr());
+                    fileWriter.write(user.getFullInfoStr());
                 }
-
+                System.out.println("Пользователи сохранены!");
             } else {
                 for (Task task : taskService.returnTaskList()) {
-                    writerFile.write(task.getFullInfoStr());
+                    fileWriter.write(task.getFullInfoStr());
                 }
+                System.out.println("Задачи сохранены!");
             }
 
         } catch (Exception e) {
             System.out.println("Ошибка записи в исходный файл");
         }
-        if (switchToTaskLoading == 0) System.out.println("Пользователи сохранены!");
-        else System.out.println("Задачи сохранены!");
+    }
+    //Фабричные методы для тестирования
+    CSVReader createCSVReader(FileReader fileReader) throws IOException {
+        return new CSVReader(fileReader);
+    }
+
+    FileWriter createFileWriter(String fileName) throws IOException {
+        return new FileWriter(fileName);
     }
 }

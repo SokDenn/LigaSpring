@@ -1,9 +1,7 @@
 package org.example.controller;
 
 import org.example.model.Task;
-import org.example.service.DataLoader;
 import org.example.service.TaskService;
-import org.example.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;

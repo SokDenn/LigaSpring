@@ -1,21 +1,26 @@
 package org.example.model;
 
-import java.util.ArrayList;
-import java.util.List;
-public class User {
-    private int id;
-    private String name;
+import jakarta.persistence.*;
 
-    public User(int id, String name) {
-        this.id = id;
+@Entity
+@Table(name = "app_user")
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+    private String name;
+    public User() {
+    }
+
+    public User(String name) {
         this.name = name;
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

@@ -21,9 +21,6 @@
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Главная страница</h1>
         <div class="btn-group">
-            <form th:action="@{/saveAll}" method="post" class="me-2">
-                <button type="submit" class="btn btn-success">Сохранить все</button>
-            </form>
             <form th:action="@{/deleteAll}" method="post">
                 <button type="submit" class="btn btn-danger">Удалить все</button>
             </form>
@@ -72,8 +69,8 @@
             </thead>
             <tbody>
             <tr th:each="task : ${tasks}">
-                <td th:text="${task.userId}"></td>
-                <td th:text="${userNamesMap[task.userId]}"></td>
+                <td th:text="${task.user.id}"></td>
+                <td th:text="${task.user.name}"></td>
                 <td th:text="${task.id}"></td>
                 <td th:text="${task.heading}"></td>
                 <td th:text="${task.description}"></td>

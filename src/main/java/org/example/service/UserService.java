@@ -1,26 +1,16 @@
 package org.example.service;
 
-import org.example.model.User;
+import org.example.repos.UserRepo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 
 @Service
 public class UserService {
-    private final ArrayList<User> userList = new ArrayList<>();
+    private final UserRepo userRepo;
 
-    public ArrayList<User> returnUserList(){
-        return userList;
-    }
-
-    public User findUserById(int id) {
-        for (User user : userList) {
-            if (user.getId() == id) {
-                return user;
-            }
-        } return null;
+    @Autowired
+    public UserService(UserRepo userRepo) {
+        this.userRepo = userRepo;
     }
 
 }

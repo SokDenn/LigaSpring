@@ -10,12 +10,12 @@ public class Task {
     private Integer id;
     private String heading;
     private String description;
-    private LocalDate dateOfCompletion;
-    @Enumerated(EnumType.STRING)
-    private Status status;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+    private LocalDate dateOfCompletion;
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     public Task() {
     }

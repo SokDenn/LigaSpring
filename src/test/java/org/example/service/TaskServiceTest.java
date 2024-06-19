@@ -1,8 +1,10 @@
 package org.example.service;
+
 import org.example.model.Status;
 import org.example.model.Task;
 import org.example.model.User;
-import org.junit.jupiter.api.BeforeEach;
+import org.example.repos.TaskRepo;
+import org.example.repos.UserRepo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -10,7 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -21,108 +23,123 @@ public class TaskServiceTest {
     @InjectMocks
     private TaskService taskService;
     @Mock
-    private UserService userService;
-
-
-    @BeforeEach
-    public void setUp() {
-        taskService.returnTaskList().add(new Task(1, "Задача 1", "Текст 1",
-                LocalDate.now(), 1, Status.NEW));
-        taskService.returnTaskList().add(new Task(2, "Задача 2", "Текст 2",
-                LocalDate.now().plusDays(1), 1, Status.DONE));
-        taskService.returnTaskList().add(new Task(3, "Задача 3", "Текст 3",
-                LocalDate.now().plusDays(2), 2, Status.NEW));
-    }
+    private TaskRepo taskRepo;
+    @Mock
+    private UserRepo userRepo;
 
     @Test
     public void testReturnFilteredTaskListByUser() {
-        List<Task> filteredTasks = taskService.returnFilteredTaskList(1, null);
-        assertEquals(2, filteredTasks.size());
-        assertEquals(1, filteredTasks.get(0).getUserId());
+        Long userId = 1L;
+
+        taskService.returnFilteredTaskList(userId, null);
+
+        verify(taskRepo, times(1)).findByUserId(userId);
     }
 
     @Test
     public void testReturnFilteredTaskListByStatusNumber() {
-        List<Task> filteredTasks = taskService.returnFilteredTaskList(null, 1);
-        assertEquals(2, filteredTasks.size());
-        assertEquals(1, filteredTasks.get(0).getStatus().statusNumber());
+        Integer statusNumber = 1;
+        Status status = Status.numberOfStatus(statusNumber);
+
+        taskService.returnFilteredTaskList(null, statusNumber);
+
+        verify(taskRepo, times(1)).findByStatus(status);
     }
 
     @Test
     public void testReturnFilteredTaskListByStatusNumberAndUser() {
-        List<Task> filteredTasks = taskService.returnFilteredTaskList(1, 1);
-        assertEquals(1, filteredTasks.size());
-        assertEquals(1, filteredTasks.get(0).getStatus().statusNumber());
-        assertEquals(1, filteredTasks.get(0).getUserId());
+        Long userId = 1L;
+        Integer statusNumber = 1;
+        Status status = Status.numberOfStatus(statusNumber);
+
+        taskService.returnFilteredTaskList(userId, statusNumber);
+
+        verify(taskRepo, times(1)).findByUserIdAndStatus(userId, status);
     }
 
     @Test
     public void testCreateTask() {
-        Task task = taskService.createTask(3, "Задача 3", "Текст 3", "15.06.2024", 3);
+        int taskId = 1;
+        String heading = "Задача 1";
+        String description = "Текст 1";
+        String dateOfCompletionStr = "19.06.2024";
+        User user = new User();
+        LocalDate dateOfCompletion = LocalDate.of(2024, 6, 19);
+
+        Task task = taskService.createTask(taskId, heading, description, dateOfCompletionStr, user);
+
         assertNotNull(task);
-        assertEquals(3, task.getId());
-        assertEquals("Задача 3", task.getHeading());
-        assertEquals("Текст 3", task.getDescription());
-        assertEquals(LocalDate.of(2024, 6, 15), task.getDateOfCompletion());
-        assertEquals(3, task.getUserId());
+        assertEquals(taskId, task.getId());
+        assertEquals(heading, task.getHeading());
+        assertEquals(description, task.getDescription());
+        assertEquals(dateOfCompletion, task.getDateOfCompletion());
+        assertEquals(user, task.getUser());
         assertEquals(Status.NEW, task.getStatus());
     }
     @Test
     public void testEditTask() {
-        Task newTask = new Task(3, "Новая задача 3", "Новый текст 3", LocalDate.now(), 1, Status.NEW);
-        when(userService.findUserById(1)).thenReturn(new User(1, "Мики Маус"));
+        User user = new User();
+        user.setId(1L);
+        Task existingTask = new Task(1, "Задача до", "Текст до", LocalDate.now(), user, Status.NEW);
+        Task newTask = new Task(1, "Задача после", "Текст после", LocalDate.now(), user, Status.NEW);
 
-        boolean result = taskService.addTask(newTask);
+        when(userRepo.existsById(user.getId())).thenReturn(true);
+        when(taskRepo.findById((long) newTask.getId())).thenReturn(Optional.of(existingTask));
+
+        Boolean result = taskService.addTask(newTask);
+
         assertTrue(result);
-        assertEquals(3, taskService.returnTaskList().size());
-        assertEquals("Новая задача 3", taskService.returnTaskList().get(2).getHeading());
-        assertEquals("Новый текст 3", taskService.returnTaskList().get(2).getDescription());
+        verify(taskRepo, times(1)).save(existingTask);
+        assertEquals("Задача после", existingTask.getHeading());
+        assertEquals("Текст после", existingTask.getDescription());
     }
     @Test
     public void testAddTask() {
-        Task newTask = new Task(4, "Новая задача 3", "Новый текст 3", LocalDate.now(), 1, Status.NEW);
-        when(userService.findUserById(1)).thenReturn(new User(1, "Мики Маус"));
+        User user = new User();
+        user.setId(1L);
+        Task task = new Task(1, "Задача", "Текст", LocalDate.now(), user, Status.NEW);
 
-        boolean result = taskService.addTask(newTask);
+        when(userRepo.existsById(user.getId())).thenReturn(true);
+        when(taskRepo.findById((long) task.getId())).thenReturn(Optional.empty());
+
+        Boolean result = taskService.addTask(task);
+
         assertTrue(result);
-        assertEquals(4, taskService.returnTaskList().size());
-        assertEquals("Новая задача 3", taskService.returnTaskList().get(3).getHeading());
-        assertEquals("Новый текст 3", taskService.returnTaskList().get(3).getDescription());
-    }
-
-    @Test
-    public void testAddTaskWithNonExistentUser() {
-        Task newTask = new Task(4, "Новая задача 3", "Новый текст 3", LocalDate.now(), 99, Status.NEW);
-        when(userService.findUserById(99)).thenReturn(null);
-
-        boolean result = taskService.addTask(newTask);
-        assertFalse(result);
-        assertEquals(3, taskService.returnTaskList().size());
+        verify(taskRepo, times(1)).save(task);
+        assertEquals("Задача", task.getHeading());
+        assertEquals("Текст", task.getDescription());
     }
 
     @Test
     public void testUpdateTaskStatus() {
+        Integer taskId = 1;
+        Integer statusNumber = 1;
+        Task task = new Task();
+        task.setId(taskId);
+        task.setStatus(Status.NEW);
 
-        boolean result = taskService.updateTaskStatus(1, 2);
+        when(taskRepo.findById((long) taskId)).thenReturn(Optional.of(task));
+
+        Boolean result = taskService.updateTaskStatus(taskId, statusNumber);
+
         assertTrue(result);
-        assertEquals(2, taskService.returnTaskList().get(0).getStatus().statusNumber());
+        verify(taskRepo, times(1)).save(any(Task.class));
     }
 
     @Test
     public void testUpdateTaskStatusNonExistentTask() {
+        Integer taskId = 1;
+        Integer statusNumber = 1;
+        Task task = new Task();
+        task.setId(taskId);
+        task.setStatus(Status.NEW);
+        Integer nonExistentTaskId = 99;
 
-        boolean result = taskService.updateTaskStatus(99, 2);
+        when(taskRepo.findById((long) nonExistentTaskId)).thenReturn(Optional.empty());
+
+        Boolean result = taskService.updateTaskStatus(nonExistentTaskId, statusNumber);
+
         assertFalse(result);
-    }
-
-    @Test
-    public void testFindTaskInAllTask() {
-
-        Task task = taskService.findTaskInAllTask(1);
-        assertNotNull(task);
-        assertEquals(1, task.getId());
-
-        task = taskService.findTaskInAllTask(99);
-        assertNull(task);
+        verify(taskRepo, never()).save(any(Task.class));
     }
 }

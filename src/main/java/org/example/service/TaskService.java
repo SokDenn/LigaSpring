@@ -3,42 +3,49 @@ package org.example.service;
 import org.example.model.Status;
 import org.example.model.Task;
 import org.example.model.User;
+import org.example.repos.TaskRepo;
+import org.example.repos.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Service
 public class TaskService {
-    private final ArrayList<Task> taskList = new ArrayList<>();
-    private final UserService userService;
+    private final TaskRepo taskRepo;
+    private final UserRepo userRepo;
+
     @Autowired
-    public TaskService(UserService userService) {
-        this.userService = userService;
+    public TaskService(TaskRepo taskRepo, UserRepo userRepo) {
+        this.taskRepo = taskRepo;
+        this.userRepo = userRepo;
     }
 
-    public ArrayList<Task> returnTaskList(){
-        return taskList;
+    public List<Task> returnFilteredTaskList(Long userId, Integer statusNumber) {
+        if (userId != null && statusNumber != null) {
+            Status status = Status.numberOfStatus(statusNumber);
+            return taskRepo.findByUserIdAndStatus(userId, status);
+
+        } else if (userId != null) {
+            return taskRepo.findByUserId(userId);
+
+        } else if (statusNumber != null) {
+            Status status = Status.numberOfStatus(statusNumber);
+            return taskRepo.findByStatus(status);
+
+        } else {
+            return (List<Task>) taskRepo.findAll();
+        }
     }
 
-    public ArrayList<Task> returnFilteredTaskList (Integer userId, Integer statusNumber){
-
-        return (ArrayList<Task>) taskList.stream()
-                .filter(task -> (userId == null || task.getUserId() == userId) &&
-                        (statusNumber == null || task.getStatus().statusNumber() == statusNumber))
-                .collect(Collectors.toList());
-    }
-
-    public Task createTask(int taskId, String heading,String description, String dateOfCompletionStr, int userId) {
+    public Task createTask(int taskId, String heading,String description, String dateOfCompletionStr, User user) {
         try{
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
             LocalDate dateOfCompletion = LocalDate.parse(dateOfCompletionStr, formatter);
 
-            return new Task(taskId,heading, description, dateOfCompletion, userId, Status.NEW);
+            return new Task(taskId,heading, description, dateOfCompletion, user, Status.NEW);
 
         }catch (Exception e){
             System.out.println("Ошибка создания задачи!");
@@ -47,16 +54,20 @@ public class TaskService {
     }
 
     public Boolean addTask(Task task) {
-        if (userService.findUserById(task.getUserId()) != null) {
-            Task findTask = findTaskInAllTask(task.getId());
+        if (userRepo.existsById(task.getUser().getId())) {
 
+            Task findTask = taskRepo.findById((long) task.getId()).orElse(null);
             if (findTask != null){
-                int indexTaskInList = taskList.indexOf(findTask);
-                taskList.set(indexTaskInList, task);
+                findTask.setHeading(task.getHeading());
+                findTask.setDescription(task.getDescription());
+                findTask.setDateOfCompletion(task.getDateOfCompletion());
+                findTask.setUser(task.getUser());
+                findTask.setStatus(task.getStatus());
+                taskRepo.save(findTask);
                 System.out.printf("Задача с ID = %d перезаписана\n", findTask.getId());
             }
             else{
-                taskList.add(task);
+                taskRepo.save(task);
             }
             return true;
 
@@ -67,13 +78,14 @@ public class TaskService {
     }
 
     public Boolean updateTaskStatus(Integer taskId, Integer statusNumber) {
-        if (findTaskInAllTask(taskId) != null) {
+        Task task = taskRepo.findById((long) taskId).orElse(null);
+        if (task != null) {
             if(Status.numberOfStatus(statusNumber) != null){
-                findTaskInAllTask(taskId).setStatus(Status.numberOfStatus(statusNumber));
+                task.setStatus(Status.numberOfStatus(statusNumber));
+                taskRepo.save(task);
                 return true;
 
             } else{
-                System.out.println("----------------------------------------------");
                 System.out.println("Такого статуса нет");
                 return false;
             }
@@ -81,12 +93,5 @@ public class TaskService {
             System.out.println("Задачи с таким ID нет");
             return false;
         }
-    }
-
-    public Task findTaskInAllTask(int taskId){
-        for(Task task : taskList){
-            if(task.getId() == taskId) return task;
-        }
-        return null;
     }
 }

@@ -1,23 +1,55 @@
 package org.example.model;
 
+import jakarta.persistence.*;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-
+@Entity
 public class Task {
-    private int id;
+    @Id
+    private Integer id;
     private String heading;
     private String description;
-    private Integer userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
     private LocalDate dateOfCompletion;
+    @Enumerated(EnumType.STRING)
     private Status status;
 
-    public Task(int id, String heading, String description, LocalDate dateOfCompletion, Integer userId, Status status) {
+    public Task() {
+    }
+    public Task(int id, String heading, String description, LocalDate dateOfCompletion, User user, Status status) {
         this.id = id;
         this.heading = heading;
         this.description = description;
-        this.userId = userId;
+        this.user = user;
         this.dateOfCompletion = dateOfCompletion;
         this.status = status;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setHeading(String heading) {
+        this.heading = heading;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setDateOfCompletion(LocalDate dateOfCompletion) {
+        this.dateOfCompletion = dateOfCompletion;
     }
 
     public int getId() {
@@ -32,9 +64,6 @@ public class Task {
         return description;
     }
 
-    public Integer getUserId() {
-        return userId;
-    }
     public LocalDate getDateOfCompletion(){return dateOfCompletion;}
 
     public String getDateStr() {
@@ -51,8 +80,7 @@ public class Task {
     public void setStatus(Status status) {this.status = status;}
 
     public String getFullInfoStr() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-        return this.id + "," + this.heading + "," + this.description + "," + this.userId + ","
-                + this.dateOfCompletion.format(formatter) + "," + status + "\n";
+        return this.id + "," + this.heading + "," + this.description + "," + this.user.getId() + ","
+                + getDateStr() + "," + status + "\n";
     }
 }

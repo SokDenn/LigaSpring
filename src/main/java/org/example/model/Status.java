@@ -7,11 +7,19 @@ public enum Status {
 
     private final int number;
     private final String title;
-
     private Status(int number, String title) {
         this.number = number;
         this.title = title;
     }
+
+    public int getNumber() {
+        return number;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
 
     public int statusNumber(){
         return number;

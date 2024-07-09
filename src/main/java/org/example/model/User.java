@@ -2,6 +2,8 @@ package org.example.model;
 
 import jakarta.persistence.*;
 
+import java.util.Set;
+
 @Entity
 @Table(name = "app_user")
 public class User {
@@ -9,12 +11,36 @@ public class User {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String name;
+    private String login;
+    private String password;
+    @ManyToMany(mappedBy = "users")
+    private Set<Project> projects;
+    @OneToMany(mappedBy = "user")
+    private Set<Task> tasks;
+
     public User() {
     }
-    public User(String name) {
+    public User(String name, String login, String password) {
         this.name = name;
+        this.login = login;
+        this.password = password;
     }
 
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
     public Long getId() {
         return id;
@@ -32,7 +58,5 @@ public class User {
         this.name = name;
     }
 
-    public String getFullInfoStr() {
-        return this.id + "," + this.name + "\n";
-    }
+    //public String getFullInfoStr() {return this.id + "," + this.name + "\n";}
 }

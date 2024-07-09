@@ -1,8 +1,6 @@
 package org.example.repos;
 
-import org.example.model.Status;
-import org.example.model.Task;
-import org.example.model.User;
+import org.example.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,20 +22,48 @@ public class TaskRepoTest {
     private TaskRepo taskRepo;
     @Autowired
     private UserRepo userRepo;
+    @Autowired
+    private ProjectRepo projectRepo;
+    private Project project1;
     private User user1, user2;
 
     @BeforeEach
     void setUp() {
-        user1 = new User("Дачник 1");
-        user2 = new User("Дачник 2");
+        user1 = new User("Дачник", "login1", "123123");
+        user2 = new User("Шашлык", "login2", "123123");
+        project1 = new Project(1L, "Заголовок", "Описание");
 
-        Task task1 = new Task(1, "Задача 1", "Описание 1", LocalDate.now(), user1, Status.NEW);
-        Task task2 = new Task(2, "Задача 2", "Описание 2", LocalDate.now(), user1, Status.NEW);
-        Task task3 = new Task(3, "Задача 3", "Описание 3", LocalDate.now(), user2, Status.IN_WORK);
-        Task task4 = new Task(4, "Задача 4", "Описание 4", LocalDate.now(), user2, Status.DONE);
-
+        projectRepo.save(project1);
         userRepo.save(user1);
         userRepo.save(user2);
+
+        TaskDTO taskDTO = new TaskDTO();
+        taskDTO.setTaskId(1L);
+        taskDTO.setHeading("Задача 1");
+        taskDTO.setDescription("Описание 1");
+        taskDTO.setDateOfCompletion(LocalDate.now());
+        taskDTO.setUser(user1);
+        taskDTO.setStatus(Status.NEW);
+        taskDTO.setProject(project1);
+        Task task1 = new Task(taskDTO);
+
+        taskDTO.setTaskId(2L);
+        taskDTO.setHeading("Задача 2");
+        taskDTO.setDescription("Описание 2");
+        Task task2 = new Task(taskDTO);
+
+        taskDTO.setTaskId(3L);
+        taskDTO.setHeading("Задача 3");
+        taskDTO.setDescription("Описание 3");
+        taskDTO.setUser(user2);
+        taskDTO.setStatus(Status.IN_WORK);
+        Task task3 = new Task(taskDTO);
+
+        taskDTO.setTaskId(4L);
+        taskDTO.setHeading("Задача 4");
+        taskDTO.setDescription("Описание 4");
+        taskDTO.setStatus(Status.DONE);
+        Task task4 = new Task(taskDTO);
 
         taskRepo.save(task1);
         taskRepo.save(task2);

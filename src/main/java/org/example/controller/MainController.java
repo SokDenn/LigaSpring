@@ -1,6 +1,8 @@
 package org.example.controller;
 
+import org.example.model.Project;
 import org.example.model.Status;
+import org.example.repos.ProjectRepo;
 import org.example.repos.TaskRepo;
 import org.example.repos.UserRepo;
 import org.example.service.TaskService;
@@ -18,6 +20,8 @@ public class MainController {
     private UserRepo userRepo;
     @Autowired
     private TaskRepo taskRepo;
+    @Autowired
+    private ProjectRepo projectRepo;
     private final TaskService taskService;
 
 
@@ -40,6 +44,7 @@ public class MainController {
         model.addAttribute("statuses", Status.values());
         model.addAttribute("tasks", taskService.returnFilteredTaskList(userIdFilter, statusNumberFilter));
         model.addAttribute("users", userRepo.findAll());
+        model.addAttribute("projects", projectRepo.findAll());
 
         return "main";
     }

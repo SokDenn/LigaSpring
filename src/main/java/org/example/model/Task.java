@@ -7,25 +7,29 @@ import java.time.format.DateTimeFormatter;
 @Entity
 public class Task {
     @Id
-    private Integer id;
+    private Long id;
     private String heading;
     private String description;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
     private LocalDate dateOfCompletion;
     @Enumerated(EnumType.STRING)
     private Status status;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+    @ManyToOne
+    @JoinColumn(name = "project_id")
+    private Project project;
 
     public Task() {
     }
-    public Task(int id, String heading, String description, LocalDate dateOfCompletion, User user, Status status) {
-        this.id = id;
-        this.heading = heading;
-        this.description = description;
-        this.user = user;
-        this.dateOfCompletion = dateOfCompletion;
-        this.status = status;
+    public Task(TaskDTO taskDTO) {
+        this.id = taskDTO.getTaskId();
+        this.heading = taskDTO.getHeading();
+        this.description = taskDTO.getDescription();
+        this.dateOfCompletion = taskDTO.getDateOfCompletion();
+        this.status = taskDTO.getStatus();
+        this.user = taskDTO.getUser();
+        this.project = taskDTO.getProject();
     }
 
     public User getUser() {
@@ -36,7 +40,7 @@ public class Task {
         this.user = user;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -52,8 +56,16 @@ public class Task {
         this.dateOfCompletion = dateOfCompletion;
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
     }
 
     public String getHeading() {

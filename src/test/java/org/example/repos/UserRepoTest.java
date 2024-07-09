@@ -1,10 +1,6 @@
 package org.example.repos;
 
-import org.example.model.Status;
-import org.example.model.Task;
 import org.example.model.User;
-import org.example.repos.TaskRepo;
-import org.example.repos.UserRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,8 +22,8 @@ public class UserRepoTest {
 
     @BeforeEach
     void setUp() {
-        user1 = new User("Дачник 1");
-        user2 = new User("Дачник 2");
+        user1 = new User("Дачник 1", "login1", "123123");
+        user2 = new User("Дачник 2", "login2", "123123");
 
         userRepo.save(user1);
         userRepo.save(user2);

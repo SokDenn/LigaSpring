@@ -1,0 +1,113 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Пользователь.com</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    .small-column {
+        width: 150px;
+    }
+    .icon-gray {
+        color: gray;
+    }
+    .icon-gray svg {
+        fill: white;
+    }
+  </style>
+  <script>
+    function validateForm() {
+      const nameInput = document.getElementById("name");
+      const loginInput = document.getElementById("login");
+      const namePattern = /^[а-яА-ЯёЁ\s]+$/;
+      const loginPattern = /^[a-zA-Z0-9]+$/;
+
+      if (!namePattern.test(nameInput.value)) {
+        alert("Имя должно быть не пустым и содержать только русские буквы.");
+        return false;
+      }
+
+      if (!loginPattern.test(loginInput.value)) {
+        alert("Логин должен быть не пустым и содержать только латинские буквы.");
+        return false;
+      }
+
+      return true;
+    }
+  </script>
+</head>
+
+<body>
+<header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+  <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+    <svg class="bi me-2" width="330" height="32"><use xlink:href="#bootstrap"></use></svg>
+    <span class="fs-2">Страница пользователей</span>
+  </a>
+
+  <ul class="nav nav-pills">
+    <li class="nav-item"><a th:href="@{/main}" class="nav-link" aria-current="page">Задачи</a></li>
+    <li class="nav-item"><a th:href="@{/projects}" class="nav-link">Проекты</a></li>
+    <li class="nav-item"><a th:href="@{/users}" class="nav-link active">Пользователи</a></li>
+  </ul>
+</header>
+
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+  <div th:if="${message}" class="alert alert-info" role="alert">
+    <span th:text="${message}"></span>
+  </div>
+
+  <h2>Пользователи</h2>
+  <div class="table-responsive small">
+    <table class="table table-striped table-sm">
+      <thead>
+      <tr>
+        <th scope="col">Имя</th>
+        <th scope="col">Логин</th>
+        <th scope="col">Пароль</th>
+        <th scope="col">Действия</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="user : ${users}">
+        <td th:text="${user.getName()}"></td>
+        <td th:text="${user.getLogin()}"></td>
+        <td>******</td>
+        <td>
+          <form th:action="@{/deleteUser}" method="post">
+            <input type="hidden" name="userId" th:value="${user.id}"/>
+            <button type="submit" class="btn btn-white">
+              <i class="fas fa-trash-alt icon-gray"></i>
+            </button>
+          </form>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h5>Добавить/Редактировать пользователя</h5>
+  <form th:action="@{/addUser}" method="post" class="row g-3 mb-3" onsubmit="return validateForm()">
+    <div class="col-md-2">
+      <label for="loginList" class="form-label">Логин</label>
+      <input list="logins" class="form-control" id="loginList" name="login" placeholder="Выберите или введите новый логин" required>
+      <datalist id="logins">
+        <option th:each="user : ${users}" th:value="${user.getLogin()}" th:text="${user.getLogin()}"></option>
+      </datalist>
+    </div>
+    <div class="col-md-2">
+      <label for="name" class="form-label">Имя пользователя</label>
+      <input type="text" class="form-control" id="name" name="name" required>
+    </div>
+    <div class="col-md-2">
+      <label for="password" class="form-label">Пароль</label>
+      <input class="form-control" id="password" name="password" required>
+    </div>
+    <div class="col-md-1 d-flex align-items-end">
+      <button type="submit" class="btn btn-primary">Добавить</button>
+    </div>
+  </form>
+</main>
+
+</body>
+</html>

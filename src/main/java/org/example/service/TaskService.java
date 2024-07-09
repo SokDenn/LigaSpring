@@ -1,8 +1,7 @@
 package org.example.service;
 
-import org.example.model.Status;
-import org.example.model.Task;
-import org.example.model.User;
+import org.example.model.*;
+import org.example.repos.ProjectRepo;
 import org.example.repos.TaskRepo;
 import org.example.repos.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,17 +9,21 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class TaskService {
     private final TaskRepo taskRepo;
     private final UserRepo userRepo;
+    private ProjectRepo projectRepo;
 
     @Autowired
-    public TaskService(TaskRepo taskRepo, UserRepo userRepo) {
+    public TaskService(TaskRepo taskRepo, UserRepo userRepo, ProjectRepo projectRepo) {
         this.taskRepo = taskRepo;
         this.userRepo = userRepo;
+        this.projectRepo = projectRepo;
     }
 
     public List<Task> returnFilteredTaskList(Long userId, Integer statusNumber) {
@@ -40,52 +43,64 @@ public class TaskService {
         }
     }
 
-    public Task createTask(int taskId, String heading,String description, String dateOfCompletionStr, User user) {
-        try{
+    public Task createTask(TaskDTO taskDTO) {
+        try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-            LocalDate dateOfCompletion = LocalDate.parse(dateOfCompletionStr, formatter);
+            LocalDate dateOfCompletion = LocalDate.parse(taskDTO.getDateOfCompletionStr(), formatter);
 
-            return new Task(taskId,heading, description, dateOfCompletion, user, Status.NEW);
+            taskDTO.setDateOfCompletion(dateOfCompletion);
+            taskDTO.setUser(userRepo.findById(taskDTO.getUserId())
+                    .orElseThrow(() -> new IllegalArgumentException("Пользователя с таким ID нет")));
+            taskDTO.setProject(projectRepo.findById(taskDTO.getProjectId())
+                    .orElseThrow(() -> new IllegalArgumentException("Проекта с таким ID нет")));
 
-        }catch (Exception e){
-            System.out.println("Ошибка создания задачи!");
-            return null;
+            return new Task(taskDTO);
+
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        } catch (DateTimeParseException e) {
+            System.out.println("Ошибка парсинга даты: " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println("Ошибка создания задачи: " + e.getMessage());
+            e.printStackTrace();
         }
+        return null;
     }
 
     public Boolean addTask(Task task) {
-        if (userRepo.existsById(task.getUser().getId())) {
-
-            Task findTask = taskRepo.findById((long) task.getId()).orElse(null);
-            if (findTask != null){
-                findTask.setHeading(task.getHeading());
-                findTask.setDescription(task.getDescription());
-                findTask.setDateOfCompletion(task.getDateOfCompletion());
-                findTask.setUser(task.getUser());
-                findTask.setStatus(task.getStatus());
-                taskRepo.save(findTask);
-                System.out.printf("Задача с ID = %d перезаписана\n", findTask.getId());
-            }
-            else{
-                taskRepo.save(task);
-            }
-            return true;
-
-        } else {
-            System.out.println("Задача назначается на несуществующий ID пользователя");
+        if (!(userRepo.existsById(task.getUser().getId()) && projectRepo.existsById(task.getProject().getId()))) {
+            System.out.println("Задача назначается на несуществующий ID пользователя или несуществующий проект");
             return false;
         }
+        Set<Task> tasks = projectRepo.findById(task.getProject().getId()).get().getTasks();
+        Task findTask = taskRepo.findById(task.getId()).orElse(null);
+        if (findTask != null) {
+            findTask.setHeading(task.getHeading());
+            findTask.setDescription(task.getDescription());
+            findTask.setDateOfCompletion(task.getDateOfCompletion());
+            findTask.setUser(task.getUser());
+            findTask.setStatus(task.getStatus());
+            findTask.setProject(task.getProject());
+            taskRepo.save(findTask);
+
+            System.out.printf("Задача с ID = %d перезаписана\n", findTask.getId());
+        } else {
+            taskRepo.save(task);
+        }
+        return true;
     }
 
-    public Boolean updateTaskStatus(Integer taskId, Integer statusNumber) {
-        Task task = taskRepo.findById((long) taskId).orElse(null);
+    public Boolean updateTaskStatus(Long taskId, Integer statusNumber) {
+        Task task = taskRepo.findById(taskId).orElse(null);
+
         if (task != null) {
-            if(Status.numberOfStatus(statusNumber) != null){
+            if (Status.numberOfStatus(statusNumber) != null) {
                 task.setStatus(Status.numberOfStatus(statusNumber));
                 taskRepo.save(task);
                 return true;
 
-            } else{
+            } else {
                 System.out.println("Такого статуса нет");
                 return false;
             }

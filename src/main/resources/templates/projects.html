@@ -1,0 +1,131 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Проект.com</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    .small-column {
+        width: 150px;
+    }
+     .icon-gray {
+        color: gray;
+    }
+    .icon-gray svg {
+        fill: white;
+  </style>
+</head>
+
+<body>
+<header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+  <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+    <svg class="bi me-2" width="330" height="32"><use xlink:href="#bootstrap"></use></svg>
+    <span class="fs-2">Страница проектов</span>
+  </a>
+
+  <ul class="nav nav-pills">
+    <li class="nav-item"><a th:href="@{/main}" class="nav-link" aria-current="page">Задачи</a></li>
+    <li class="nav-item"><a th:href="@{/projects}" class="nav-link  active">Проекты</a></li>
+    <li class="nav-item"><a th:href="@{/users}" class="nav-link">Пользователи</a></li>
+  </ul>
+</header>
+
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+  <div th:if="${message}" class="alert alert-info" role="alert">
+    <span th:text="${message}"></span>
+  </div>
+
+  <h2>Проекты</h2>
+  <div class="table-responsive small">
+    <table class="table table-striped table-sm">
+      <thead>
+      <tr>
+        <th scope="col">id проекта</th>
+        <th scope="col">Заголовок проекта</th>
+        <th scope="col">Описание проекта</th>
+        <th scope="col">Пользователи</th>
+        <th scope="col">Действия</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="project : ${projects}">
+        <td th:text="${project.getId}"></td>
+        <td th:text="${project.getHeading()}"></td>
+        <td th:text="${project.getDescription()}"></td>
+        <td>
+          <ul>
+            <li th:each="user : ${project.getUsers()}">
+              <form th:action="@{/removeUserToProject}" method="post">
+                <span th:text="${user.getName()}"></span>
+                <input type="hidden" name="projectId" th:value="${project.getId()}"/>
+                <input type="hidden" name="userId" th:value="${user.getId()}"/>
+                <button type="submit" class="btn btn-link">
+                  <i class="fas fa-trash-alt icon-gray"></i>
+                </button>
+              </form>
+
+            </li>
+          </ul>
+        </td>
+        <td>
+          <form th:action="@{/deleteProject}" method="post">
+            <input type="hidden" name="projectId" th:value="${project.id}"/>
+            <button type="submit" class="btn btn-white">
+              <i class="fas fa-trash-alt icon-gray"></i>
+            </button>
+          </form>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h5>Добавить/Редактировать проект</h5>
+  <form th:action="@{/addProject}" method="post" class="row g-3 mb-3">
+    <div class="col-md-2">
+      <label for="projectId" class="form-label">id проекта</label>
+      <input list="projectIds" class="form-control" id="projectId" name="projectId" placeholder="Выберите или введите новый ID" required
+             pattern="\d*" inputmode="numeric">
+      <datalist id="projectIds">
+        <option th:each="project : ${projects}" th:value="${project.id}" th:text="${project.id}"></option>
+      </datalist>
+    </div>
+    <div class="col-md-2">
+      <label for="heading" class="form-label">Заголовок</label>
+      <input type="text" class="form-control" id="heading" name="heading" required>
+    </div>
+    <div class="col-md-2">
+      <label for="description" class="form-label">Описание</label>
+      <input class="form-control" id="description" name="description" required>
+    </div>
+    <div class="col-md-1 d-flex align-items-end">
+      <button type="submit" class="btn btn-primary">Добавить</button>
+    </div>
+  </form>
+
+  <h5>Добавить пользователя в проект</h5>
+  <form th:action="@{/addUserToProject}" method="post" class="row g-3 mb-3">
+    <div class="col-md-2">
+      <label for="projectId" class="form-label">ID проекта</label>
+      <select id="projectIds2" name="projectId" class="form-select" required>
+        <option value="">Выберите проект</option>
+        <option th:each="project : ${projects}" th:value="${project.id}" th:text="${project.heading}"></option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label for="user" class="form-label">Пользователь</label>
+      <select id="user" name="userId" class="form-select" required>
+        <option value="">Выберите пользователя</option>
+        <option th:each="user : ${users}" th:value="${user.id}" th:text="${user.name}"></option>
+      </select>
+    </div>
+    <div class="col-md-1 d-flex align-items-end">
+      <button type="submit" class="btn btn-primary">Добавить</button>
+    </div>
+  </form>
+
+</main>
+
+</body>
+</html>

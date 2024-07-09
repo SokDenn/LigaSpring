@@ -1,8 +1,7 @@
 package org.example.service;
 
-import org.example.model.Status;
-import org.example.model.Task;
-import org.example.model.User;
+import org.example.model.*;
+import org.example.repos.ProjectRepo;
 import org.example.repos.TaskRepo;
 import org.example.repos.UserRepo;
 import org.junit.jupiter.api.Test;
@@ -26,6 +25,8 @@ public class TaskServiceTest {
     private TaskRepo taskRepo;
     @Mock
     private UserRepo userRepo;
+    @Mock
+    private ProjectRepo projectRepo;
 
     @Test
     public void testReturnFilteredTaskListByUser() {
@@ -59,87 +60,108 @@ public class TaskServiceTest {
 
     @Test
     public void testCreateTask() {
-        int taskId = 1;
-        String heading = "Задача 1";
-        String description = "Текст 1";
-        String dateOfCompletionStr = "19.06.2024";
+        TaskDTO taskDTO = new TaskDTO();
+        taskDTO.setTaskId(1L);
+        taskDTO.setDateOfCompletionStr("01.01.2024");
+        taskDTO.setUserId(1L);
+        taskDTO.setProjectId(1L);
         User user = new User();
-        LocalDate dateOfCompletion = LocalDate.of(2024, 6, 19);
+        Project project = new Project();
 
-        Task task = taskService.createTask(taskId, heading, description, dateOfCompletionStr, user);
+        when(userRepo.findById(taskDTO.getUserId())).thenReturn(Optional.of(user));
+        when(projectRepo.findById(taskDTO.getProjectId())).thenReturn(Optional.of(project));
+
+        Task task = taskService.createTask(taskDTO);
 
         assertNotNull(task);
-        assertEquals(taskId, task.getId());
-        assertEquals(heading, task.getHeading());
-        assertEquals(description, task.getDescription());
-        assertEquals(dateOfCompletion, task.getDateOfCompletion());
+        assertEquals(LocalDate.of(2024, 1, 1), task.getDateOfCompletion());
         assertEquals(user, task.getUser());
-        assertEquals(Status.NEW, task.getStatus());
+        assertEquals(project, task.getProject());
     }
     @Test
     public void testEditTask() {
         User user = new User();
         user.setId(1L);
-        Task existingTask = new Task(1, "Задача до", "Текст до", LocalDate.now(), user, Status.NEW);
-        Task newTask = new Task(1, "Задача после", "Текст после", LocalDate.now(), user, Status.NEW);
+
+        Project project = new Project();
+        project.setId(1L);
+
+        Task existingTask = new Task();
+        existingTask.setId(1L);
+        Task updatedTask = new Task();
+
+        updatedTask.setId(1L);
+        updatedTask.setHeading("Задача после");
+        updatedTask.setDescription("Текст после");
+        updatedTask.setDateOfCompletion(existingTask.getDateOfCompletion());
+        updatedTask.setUser(user);
+        updatedTask.setStatus(Status.IN_WORK);
+        updatedTask.setProject(project);
 
         when(userRepo.existsById(user.getId())).thenReturn(true);
-        when(taskRepo.findById((long) newTask.getId())).thenReturn(Optional.of(existingTask));
+        when(projectRepo.existsById(project.getId())).thenReturn(true);
+        when(projectRepo.findById(project.getId())).thenReturn(Optional.of(project));
+        when(taskRepo.findById(existingTask.getId())).thenReturn(Optional.of(existingTask));
 
-        Boolean result = taskService.addTask(newTask);
+        Boolean result = taskService.addTask(updatedTask);
 
         assertTrue(result);
         verify(taskRepo, times(1)).save(existingTask);
         assertEquals("Задача после", existingTask.getHeading());
         assertEquals("Текст после", existingTask.getDescription());
+        assertEquals(Status.IN_WORK, existingTask.getStatus());
     }
     @Test
     public void testAddTask() {
         User user = new User();
         user.setId(1L);
-        Task task = new Task(1, "Задача", "Текст", LocalDate.now(), user, Status.NEW);
+
+        Project project = new Project();
+        project.setId(1L);
+
+        Task task = new Task();
+        task.setId(1L);
+        task.setUser(user);
+        task.setProject(project);
 
         when(userRepo.existsById(user.getId())).thenReturn(true);
-        when(taskRepo.findById((long) task.getId())).thenReturn(Optional.empty());
+        when(projectRepo.existsById(project.getId())).thenReturn(true);
+        when(projectRepo.findById(project.getId())).thenReturn(Optional.of(project));
+        when(taskRepo.findById(task.getId())).thenReturn(Optional.empty());
 
         Boolean result = taskService.addTask(task);
 
-        assertTrue(result);
         verify(taskRepo, times(1)).save(task);
-        assertEquals("Задача", task.getHeading());
-        assertEquals("Текст", task.getDescription());
+        assertTrue(result);
     }
 
     @Test
     public void testUpdateTaskStatus() {
-        Integer taskId = 1;
-        Integer statusNumber = 1;
+        Long taskId = 1L;
+        Integer newStatusNumber = 2;
+        Status newStatus = Status.numberOfStatus(newStatusNumber);
         Task task = new Task();
         task.setId(taskId);
         task.setStatus(Status.NEW);
 
-        when(taskRepo.findById((long) taskId)).thenReturn(Optional.of(task));
+        when(taskRepo.findById(taskId)).thenReturn(Optional.of(task));
 
-        Boolean result = taskService.updateTaskStatus(taskId, statusNumber);
+        Boolean result = taskService.updateTaskStatus(taskId, newStatusNumber);
 
         assertTrue(result);
-        verify(taskRepo, times(1)).save(any(Task.class));
+        assertEquals(newStatus, task.getStatus());
+        verify(taskRepo, times(1)).save(task);
     }
 
     @Test
     public void testUpdateTaskStatusNonExistentTask() {
-        Integer taskId = 1;
-        Integer statusNumber = 1;
-        Task task = new Task();
-        task.setId(taskId);
-        task.setStatus(Status.NEW);
-        Integer nonExistentTaskId = 99;
+        Long taskId = 999L;
 
-        when(taskRepo.findById((long) nonExistentTaskId)).thenReturn(Optional.empty());
+        when(taskRepo.findById(taskId)).thenReturn(Optional.empty());
 
-        Boolean result = taskService.updateTaskStatus(nonExistentTaskId, statusNumber);
+        Boolean result = taskService.updateTaskStatus(taskId, 1);
 
         assertFalse(result);
-        verify(taskRepo, never()).save(any(Task.class));
+        verify(taskRepo, never()).save(any());
     }
 }

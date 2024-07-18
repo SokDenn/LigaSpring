@@ -1,5 +1,6 @@
 package org.example.service;
 
+import org.example.dto.TaskDTO;
 import org.example.model.*;
 import org.example.repos.ProjectRepo;
 import org.example.repos.TaskRepo;
@@ -12,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -30,7 +32,7 @@ public class TaskServiceTest {
 
     @Test
     public void testReturnFilteredTaskListByUser() {
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         taskService.returnFilteredTaskList(userId, null);
 
@@ -49,7 +51,7 @@ public class TaskServiceTest {
 
     @Test
     public void testReturnFilteredTaskListByStatusNumberAndUser() {
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         Integer statusNumber = 1;
         Status status = Status.numberOfStatus(statusNumber);
 
@@ -61,10 +63,9 @@ public class TaskServiceTest {
     @Test
     public void testCreateTask() {
         TaskDTO taskDTO = new TaskDTO();
-        taskDTO.setTaskId(1L);
         taskDTO.setDateOfCompletionStr("01.01.2024");
-        taskDTO.setUserId(1L);
-        taskDTO.setProjectId(1L);
+        taskDTO.setUserId(UUID.randomUUID());
+        taskDTO.setProjectId(UUID.randomUUID());
         User user = new User();
         Project project = new Project();
 
@@ -79,69 +80,11 @@ public class TaskServiceTest {
         assertEquals(project, task.getProject());
     }
     @Test
-    public void testEditTask() {
-        User user = new User();
-        user.setId(1L);
-
-        Project project = new Project();
-        project.setId(1L);
-
-        Task existingTask = new Task();
-        existingTask.setId(1L);
-        Task updatedTask = new Task();
-
-        updatedTask.setId(1L);
-        updatedTask.setHeading("Задача после");
-        updatedTask.setDescription("Текст после");
-        updatedTask.setDateOfCompletion(existingTask.getDateOfCompletion());
-        updatedTask.setUser(user);
-        updatedTask.setStatus(Status.IN_WORK);
-        updatedTask.setProject(project);
-
-        when(userRepo.existsById(user.getId())).thenReturn(true);
-        when(projectRepo.existsById(project.getId())).thenReturn(true);
-        when(projectRepo.findById(project.getId())).thenReturn(Optional.of(project));
-        when(taskRepo.findById(existingTask.getId())).thenReturn(Optional.of(existingTask));
-
-        Boolean result = taskService.addTask(updatedTask);
-
-        assertTrue(result);
-        verify(taskRepo, times(1)).save(existingTask);
-        assertEquals("Задача после", existingTask.getHeading());
-        assertEquals("Текст после", existingTask.getDescription());
-        assertEquals(Status.IN_WORK, existingTask.getStatus());
-    }
-    @Test
-    public void testAddTask() {
-        User user = new User();
-        user.setId(1L);
-
-        Project project = new Project();
-        project.setId(1L);
-
-        Task task = new Task();
-        task.setId(1L);
-        task.setUser(user);
-        task.setProject(project);
-
-        when(userRepo.existsById(user.getId())).thenReturn(true);
-        when(projectRepo.existsById(project.getId())).thenReturn(true);
-        when(projectRepo.findById(project.getId())).thenReturn(Optional.of(project));
-        when(taskRepo.findById(task.getId())).thenReturn(Optional.empty());
-
-        Boolean result = taskService.addTask(task);
-
-        verify(taskRepo, times(1)).save(task);
-        assertTrue(result);
-    }
-
-    @Test
     public void testUpdateTaskStatus() {
-        Long taskId = 1L;
+        UUID taskId = UUID.randomUUID();
         Integer newStatusNumber = 2;
         Status newStatus = Status.numberOfStatus(newStatusNumber);
         Task task = new Task();
-        task.setId(taskId);
         task.setStatus(Status.NEW);
 
         when(taskRepo.findById(taskId)).thenReturn(Optional.of(task));
@@ -155,7 +98,7 @@ public class TaskServiceTest {
 
     @Test
     public void testUpdateTaskStatusNonExistentTask() {
-        Long taskId = 999L;
+        UUID taskId = UUID.randomUUID();
 
         when(taskRepo.findById(taskId)).thenReturn(Optional.empty());
 

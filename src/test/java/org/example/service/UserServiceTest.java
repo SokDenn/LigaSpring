@@ -1,9 +1,11 @@
 package org.example.service;
 
 import org.example.model.Project;
+import org.example.model.Role;
 import org.example.model.Task;
 import org.example.model.User;
 import org.example.repos.ProjectRepo;
+import org.example.repos.RoleRepo;
 import org.example.repos.TaskRepo;
 import org.example.repos.UserRepo;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,11 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
@@ -25,6 +26,10 @@ public class UserServiceTest {
     private UserRepo userRepo;
     @Mock
     private TaskRepo taskRepo;
+    @Mock
+    private RoleRepo roleRepo;
+    @Mock
+    private PasswordEncoder passwordEncoder;
     @Mock
     private ProjectRepo projectRepo;
     @Mock
@@ -42,9 +47,11 @@ public class UserServiceTest {
         String password = "123123";
 
         User existingUser = new User(name, login, password);
-        when(userRepo.findByLogin(login)).thenReturn(Optional.of(existingUser));
+        when(userRepo.findByUsername(login)).thenReturn(Optional.of(existingUser));
+        when(userRepo.findById(any())).thenReturn(Optional.of(existingUser));
+        when(passwordEncoder.encode(any())).thenReturn("123");
 
-        boolean result = userService.addUser(name, login, password);
+        boolean result = userService.addUser(UUID.randomUUID(), name, login, password);
 
         verify(userRepo).save(existingUser);
         assertTrue(result);
@@ -56,9 +63,11 @@ public class UserServiceTest {
         String login = "login";
         String password = "123123";
 
-        when(userRepo.findByLogin(login)).thenReturn(Optional.empty());
+        when(userRepo.findByUsername(login)).thenReturn(Optional.empty());
+        when(roleRepo.findByName("USER")).thenReturn(Optional.of(new Role("USER")));
+        when(passwordEncoder.encode(any())).thenReturn("123");
 
-        boolean result = userService.addUser(name, login, password);
+        boolean result = userService.addUser(null, name, login, password);
 
         verify(userRepo).save(any(User.class));
         assertTrue(result);
@@ -66,41 +75,37 @@ public class UserServiceTest {
 
     @Test
     public void testDeleteUser() {
-        Long userId = 1L;
         User user = new User();
-        user.setId(userId);
 
         List<Task> tasks = Arrays.asList(new Task(), new Task());
         List<Project> projects = Arrays.asList(new Project(), new Project());
 
-        when(userRepo.findById(userId)).thenReturn(Optional.of(user));
-        when(taskRepo.findByUserId(userId)).thenReturn(tasks);
-        when(projectRepo.findByUsers_Id(userId)).thenReturn(projects);
+        when(userRepo.findById(user.getId())).thenReturn(Optional.of(user));
+        when(taskRepo.findByUserId(user.getId())).thenReturn(tasks);
+        when(projectRepo.findByUsers_Id(user.getId())).thenReturn(projects);
 
-        userService.deleteUser(userId);
+        userService.deleteUser(user.getId());
 
         verify(taskRepo, times(2)).delete(any(Task.class));
-        verify(projectService, times(2)).UserToProject(anyLong(), eq(userId), eq(1));
+        verify(projectService, times(2)).UserToProject(any(), eq(user.getId()), eq(1));
         verify(userRepo).delete(user);
     }
 
     @Test
     public void testDeleteUserNoTasksOrProjects() {
-        Long userId = 2L;
         User user = new User();
-        user.setId(userId);
 
         List<Task> emptyTaskList = Collections.emptyList();
         List<Project> emptyProjectList = Collections.emptyList();
 
-        when(userRepo.findById(userId)).thenReturn(Optional.of(user));
-        when(taskRepo.findByUserId(userId)).thenReturn(emptyTaskList);
-        when(projectRepo.findByUsers_Id(userId)).thenReturn(emptyProjectList);
+        when(userRepo.findById(user.getId())).thenReturn(Optional.of(user));
+        when(taskRepo.findByUserId(user.getId())).thenReturn(emptyTaskList);
+        when(projectRepo.findByUsers_Id(user.getId())).thenReturn(emptyProjectList);
 
-        userService.deleteUser(userId);
+        userService.deleteUser(user.getId());
 
         verify(taskRepo, never()).delete(any(Task.class));
-        verify(projectService, never()).UserToProject(anyLong(), eq(userId), eq(1));
+        verify(projectService, never()).UserToProject(any(), eq(user.getId()), eq(1));
         verify(userRepo).delete(user);
     }
 }

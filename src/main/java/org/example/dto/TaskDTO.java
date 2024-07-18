@@ -1,15 +1,20 @@
-package org.example.model;
+package org.example.dto;
+
+import org.example.model.Project;
+import org.example.model.Status;
+import org.example.model.User;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 public class TaskDTO {
-    private Long taskId;
+    private UUID taskId;
     private String heading;
     private String description;
     private String dateOfCompletionStr;
     private Status status;
-    private Long userId;
-    private Long projectId;
+    private UUID userId;
+    private UUID projectId;
     private LocalDate dateOfCompletion;
     private User user;
     private Project project;
@@ -32,12 +37,11 @@ public class TaskDTO {
         this.status = status;
     }
 
-
-    public long getTaskId() {
+    public UUID getTaskId() {
         return taskId;
     }
 
-    public void setTaskId(long taskId) {
+    public void setTaskId(UUID taskId) {
         this.taskId = taskId;
     }
 
@@ -57,19 +61,19 @@ public class TaskDTO {
         this.description = description;
     }
 
-    public Long getUserId() {
+    public UUID getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(UUID userId) {
         this.userId = userId;
     }
 
-    public Long getProjectId() {
+    public UUID getProjectId() {
         return projectId;
     }
 
-    public void setProjectId(Long projectId) {
+    public void setProjectId(UUID projectId) {
         this.projectId = projectId;
     }
 

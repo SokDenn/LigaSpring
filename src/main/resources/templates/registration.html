@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <title>Liga.ru</title>
+
+    <script>
+        function validateForm() {
+            const nameInput = document.getElementById("name");
+            const loginInput = document.getElementById("username");
+            const namePattern = /^[а-яА-ЯёЁ\s]+$/;
+            const loginPattern = /^[a-zA-Z0-9]+$/;
+
+            if (!namePattern.test(nameInput.value)) {
+                alert("Имя должно быть не пустым и содержать только русские буквы.");
+                return false;
+            }
+
+            if (!loginPattern.test(loginInput.value)) {
+                alert("Логин должен быть не пустым и содержать только латинские буквы.");
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+</head>
+<body>
+<h1>Добавить нового пользователя</h1>
+<div th:each="message : ${messages}">
+    <div th:text="${message}"></div>
+</div>
+<form th:action="@{/registration}" method="post" onsubmit="return validateForm()">
+    <div><label> Имя : <input type="text" id="name" name="name"/> </label></div>
+    <div><label> Логин : <input type="text" id="username" name="username"/> </label></div>
+    <div><label> Пароль: <input type="password" name="password"/> </label></div>
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+    <div><input type="submit" value="Добавить"/></div>
+</form>
+</body>
+</html>

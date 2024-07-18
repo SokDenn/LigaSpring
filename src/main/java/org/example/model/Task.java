@@ -1,13 +1,20 @@
 package org.example.model;
 
 import jakarta.persistence.*;
+import org.example.dto.TaskDTO;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
+
 @Entity
 public class Task {
     @Id
-    private Long id;
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(columnDefinition = "uuid")
+    private UUID id;
     private String heading;
     private String description;
     private LocalDate dateOfCompletion;
@@ -23,7 +30,6 @@ public class Task {
     public Task() {
     }
     public Task(TaskDTO taskDTO) {
-        this.id = taskDTO.getTaskId();
         this.heading = taskDTO.getHeading();
         this.description = taskDTO.getDescription();
         this.dateOfCompletion = taskDTO.getDateOfCompletion();
@@ -40,7 +46,7 @@ public class Task {
         this.user = user;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -56,7 +62,7 @@ public class Task {
         this.dateOfCompletion = dateOfCompletion;
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 

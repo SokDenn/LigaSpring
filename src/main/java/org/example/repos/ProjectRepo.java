@@ -7,8 +7,9 @@ import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface ProjectRepo extends CrudRepository<Project, Long> {
-    Optional<Project> findById(Integer projectId);
-    List<Project> findByUsers_Id(Long userId);
+public interface ProjectRepo extends CrudRepository<Project, UUID> {
+    Optional<Project> findById(UUID projectId);
+    List<Project> findByUsers_Id(UUID userId);
 }

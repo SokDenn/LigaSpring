@@ -1,5 +1,6 @@
 package org.example.repos;
 
+import org.example.dto.TaskDTO;
 import org.example.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,16 +30,16 @@ public class TaskRepoTest {
 
     @BeforeEach
     void setUp() {
+        taskRepo.deleteAll();
         user1 = new User("Дачник", "login1", "123123");
         user2 = new User("Шашлык", "login2", "123123");
-        project1 = new Project(1L, "Заголовок", "Описание");
+        project1 = new Project("Заголовок", "Описание");
 
         projectRepo.save(project1);
         userRepo.save(user1);
         userRepo.save(user2);
 
         TaskDTO taskDTO = new TaskDTO();
-        taskDTO.setTaskId(1L);
         taskDTO.setHeading("Задача 1");
         taskDTO.setDescription("Описание 1");
         taskDTO.setDateOfCompletion(LocalDate.now());
@@ -47,19 +48,16 @@ public class TaskRepoTest {
         taskDTO.setProject(project1);
         Task task1 = new Task(taskDTO);
 
-        taskDTO.setTaskId(2L);
         taskDTO.setHeading("Задача 2");
         taskDTO.setDescription("Описание 2");
         Task task2 = new Task(taskDTO);
 
-        taskDTO.setTaskId(3L);
         taskDTO.setHeading("Задача 3");
         taskDTO.setDescription("Описание 3");
         taskDTO.setUser(user2);
         taskDTO.setStatus(Status.IN_WORK);
         Task task3 = new Task(taskDTO);
 
-        taskDTO.setTaskId(4L);
         taskDTO.setHeading("Задача 4");
         taskDTO.setDescription("Описание 4");
         taskDTO.setStatus(Status.DONE);
@@ -75,7 +73,7 @@ public class TaskRepoTest {
     void testFindByUserIdAndStatus() {
         List<Task> tasks = taskRepo.findByUserIdAndStatus(user1.getId(), Status.NEW);
 
-        assertEquals(2, tasks.size());
+        assertEquals(2L, tasks.size());
         assertEquals("Задача 1",tasks.get(0).getHeading());
         assertEquals("Описание 2",tasks.get(1).getDescription());
     }

@@ -1,5 +1,6 @@
 package org.example.service;
 
+import org.example.dto.TaskDTO;
 import org.example.model.*;
 import org.example.repos.ProjectRepo;
 import org.example.repos.TaskRepo;
@@ -12,6 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class TaskService {
@@ -26,7 +28,7 @@ public class TaskService {
         this.projectRepo = projectRepo;
     }
 
-    public List<Task> returnFilteredTaskList(Long userId, Integer statusNumber) {
+    public List<Task> returnFilteredTaskList(UUID userId, Integer statusNumber) {
         if (userId != null && statusNumber != null) {
             Status status = Status.numberOfStatus(statusNumber);
             return taskRepo.findByUserIdAndStatus(userId, status);
@@ -39,7 +41,7 @@ public class TaskService {
             return taskRepo.findByStatus(status);
 
         } else {
-            return (List<Task>) taskRepo.findAll();
+            return taskRepo.findAllByOrderByDateOfCompletionDesc();
         }
     }
 
@@ -54,7 +56,11 @@ public class TaskService {
             taskDTO.setProject(projectRepo.findById(taskDTO.getProjectId())
                     .orElseThrow(() -> new IllegalArgumentException("Проекта с таким ID нет")));
 
-            return new Task(taskDTO);
+            Task task = new Task(taskDTO);
+            if (taskDTO.getTaskId() != null){
+                task.setId(taskDTO.getTaskId());
+            }
+            return task;
 
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
@@ -68,30 +74,8 @@ public class TaskService {
         return null;
     }
 
-    public Boolean addTask(Task task) {
-        if (!(userRepo.existsById(task.getUser().getId()) && projectRepo.existsById(task.getProject().getId()))) {
-            System.out.println("Задача назначается на несуществующий ID пользователя или несуществующий проект");
-            return false;
-        }
-        Set<Task> tasks = projectRepo.findById(task.getProject().getId()).get().getTasks();
-        Task findTask = taskRepo.findById(task.getId()).orElse(null);
-        if (findTask != null) {
-            findTask.setHeading(task.getHeading());
-            findTask.setDescription(task.getDescription());
-            findTask.setDateOfCompletion(task.getDateOfCompletion());
-            findTask.setUser(task.getUser());
-            findTask.setStatus(task.getStatus());
-            findTask.setProject(task.getProject());
-            taskRepo.save(findTask);
 
-            System.out.printf("Задача с ID = %d перезаписана\n", findTask.getId());
-        } else {
-            taskRepo.save(task);
-        }
-        return true;
-    }
-
-    public Boolean updateTaskStatus(Long taskId, Integer statusNumber) {
+    public Boolean updateTaskStatus(UUID taskId, Integer statusNumber) {
         Task task = taskRepo.findById(taskId).orElse(null);
 
         if (task != null) {
@@ -108,5 +92,8 @@ public class TaskService {
             System.out.println("Задачи с таким ID нет");
             return false;
         }
+    }
+    public Task getTaskById(UUID id) {
+        return taskRepo.findById(id).orElseThrow(() -> new RuntimeException("Задача не найдена"));
     }
 }

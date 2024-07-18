@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class ProjectService {
@@ -19,25 +20,24 @@ public class ProjectService {
         this.projectRepo = projectRepo;
     }
 
-    public Boolean addProject(Long id, String heading, String description) {
+    public Boolean addProject(UUID id, String heading, String description) {
 
-        Project newProject = new Project(id , heading, description);
-        Project findProject = projectRepo.findById(newProject.getId()).orElse(null);
+        Project newProject = new Project(heading, description);
 
-        if (findProject != null) {
-            findProject.setHeading(newProject.getHeading());
-            findProject.setDescription(newProject.getDescription());
-
-            projectRepo.save(findProject);
-            System.out.printf("Проект с ID = %d перезаписан\n", findProject.getId());
+        if (id != null) {
+            newProject.setId(id);
+            Set<User> users = projectRepo.findById(id).get().getUsers();
+            if(users!= null) newProject.setUsers(users);
+            System.out.printf("Проект с ID = %s перезаписан\n", newProject.getId());
         } else {
-            projectRepo.save(newProject);
+            System.out.printf("Проект с ID = %s добавлен\n", id);
         }
+        projectRepo.save(newProject);
         return true;
     }
 
 
-    public Boolean UserToProject(Long projectId, Long userId, int switchToRemove) {
+    public Boolean UserToProject(UUID projectId, UUID userId, int switchToRemove) {
         Project project = projectRepo.findById(projectId).orElse(null);
         User user = userRepo.findById(userId).orElse(null);
 
@@ -56,7 +56,7 @@ public class ProjectService {
         else return false;
     }
 
-    public Boolean isUserInProject(Long projectId, Long userId) {
+    public Boolean isUserInProject(UUID projectId, UUID userId) {
         Project project = projectRepo.findById(projectId).orElse(null);
 
         if(project != null){

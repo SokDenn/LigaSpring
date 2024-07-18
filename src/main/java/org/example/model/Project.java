@@ -1,13 +1,18 @@
 package org.example.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 public class Project {
     @Id
-    private Long id;
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(columnDefinition = "uuid")
+    private UUID id;
     private String heading;
     private String description;
     @ManyToMany
@@ -21,17 +26,16 @@ public class Project {
     private Set<Task> tasks;
 
     public Project() {}
-    public Project(Long id, String heading, String description) {
-        this.id = id;
+    public Project(String heading, String description) {
         this.heading = heading;
         this.description = description;
     }
 
-    public long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

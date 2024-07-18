@@ -1,48 +1,69 @@
 package org.example.service;
 
+import org.example.dto.UserDTO;
 import org.example.model.Project;
+import org.example.model.Role;
 import org.example.model.Task;
 import org.example.model.User;
 import org.example.repos.ProjectRepo;
+import org.example.repos.RoleRepo;
 import org.example.repos.TaskRepo;
 import org.example.repos.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
-public class UserService {
-    private final UserRepo userRepo;
-    private final TaskRepo taskRepo;
-    private final ProjectRepo projectRepo;
-    private  final ProjectService projectService;
+public class UserService implements UserDetailsService {
     @Autowired
-    public UserService(UserRepo userRepo, TaskRepo taskRepo, ProjectRepo projectRepo, ProjectService projectService) {
-        this.userRepo = userRepo;
-        this.taskRepo = taskRepo;
-        this.projectRepo = projectRepo;
-        this.projectService = projectService;
-    }
+    private UserRepo userRepo;
+    @Autowired
+    private TaskRepo taskRepo;
+    @Autowired
+    private RoleRepo roleRepo;
+    @Autowired
+    private ProjectRepo projectRepo;
+    @Autowired
+    private ProjectService projectService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-    public Boolean addUser(String name, String login, String password) {
 
+    public Boolean addUser(UUID userId, String name, String login, String password) {
         User newUser = new User(name, login, password);
-        User findUser = userRepo.findByLogin(newUser.getLogin()).orElse(null);
+        if (userRepo.findByUsername(login).isPresent() && userId == null) return false;
 
-        if (findUser != null) {
+        if (userId != null) {
+            User findUser = userRepo.findById(userId).orElse(null);
             findUser.setName(name);
-            findUser.setPassword(password);
-
+            findUser.setUsername(login);
+            findUser.setPassword(passwordEncoder.encode(password));
             userRepo.save(findUser);
-            System.out.printf("Пользователь с login = %s перезаписан\n", findUser.getLogin());
+            System.out.printf("Пользователь с login = %s перезаписан\n", userId);
+
         } else {
+            Role roleUser = roleRepo.findByName("USER").orElse(null);
+            Set<Role> roles = new HashSet<>();
+            roles.add(roleUser);
+
+            newUser.setRoles(roles);
+            newUser.setPassword(passwordEncoder.encode(password));
             userRepo.save(newUser);
         }
         return true;
     }
 
-    public void deleteUser(Long id) {
+    public void deleteUser(UUID id) {
         User user = userRepo.findById(id).orElse(null);
         List<Task> taskList = taskRepo.findByUserId(id);
         List<Project> projectList = projectRepo.findByUsers_Id(id);
@@ -59,5 +80,17 @@ public class UserService {
         }
         userRepo.delete(user);
 
+    }
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Пользователь с таким логином не найден: " + username));
+        return new UserDTO(user);
+    }
+
+    public String returnAuthenticationUserStr(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return userDetails.getUsername();
     }
 }

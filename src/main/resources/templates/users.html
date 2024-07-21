@@ -54,7 +54,7 @@
   </div>
 
   <ul class="nav nav-pills">
-    <li class="nav-item"><a th:href="@{/main}" class="nav-link" aria-current="page">Задачи</a></li>
+    <li class="nav-item"><a th:href="@{/tasks}" class="nav-link" aria-current="page">Задачи</a></li>
     <li class="nav-item"><a th:href="@{/projects}" class="nav-link">Проекты</a></li>
     <li class="nav-item"><a th:href="@{/users}" class="nav-link active">Пользователи</a></li>
     <li class="nav-item">
@@ -71,8 +71,8 @@
     <span th:text="${message}"></span>
   </div>
 
-  <h5>Добавить пользователя в проект</h5>
-  <form th:action="@{/addRoleToUser}" method="post" class="row g-3 mb-3">
+  <h5>Добавить роль пользователю</h5>
+  <form id="addRoleForm" method="post" class="row g-3 mb-3">
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
     <div class="col-md-2">
       <label for="user" class="form-label">Пользователь</label>
@@ -93,9 +93,24 @@
     </div>
   </form>
 
+  <script>
+    document.getElementById('addRoleForm').addEventListener('submit', function (event) {
+        var form = event.target;
+        var userId = document.getElementById('user').value;
+        var roleId = document.getElementById('roleId').value;
+
+        if (userId && roleId) {
+            form.action = '/users/' + userId + '/role/' + roleId;
+        } else {
+            event.preventDefault(); // Если userId или roleId не выбраны, отменить отправку формы
+            alert('Пожалуйста, выберите пользователя и роль.');
+        }
+    });
+  </script>
+
   <div class="d-flex align-items-center mb-3">
     <h2>Пользователи</h2>
-    <a th:href="@{/editUser}" class="btn btn-primary btn-sm ms-3">Добавить пользователя</a>
+    <a th:href="@{users/editUser}" class="btn btn-primary btn-sm ms-3">Добавить пользователя</a>
   </div>
 
   <div class="table-responsive small">
@@ -117,11 +132,10 @@
         <td>
           <ul>
             <li th:each="role : ${user.getRoles()}">
-              <form th:action="@{/removeRoleToUser}" method="post" style="display:inline;">
+              <form th:action="@{/users/{userId}/role/{roleId}(userId=${user.id}, roleId=${role.id})}" method="post" style="display:inline;">
+                <input type="hidden" name="_method" value="delete"/>
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <span th:text="${role.getName()}"></span>
-                <input type="hidden" name="userId" th:value="${user.getId()}"/>
-                <input type="hidden" name="roleId" th:value="${role.getId()}"/>
                 <button type="submit" class="btn btn-link">
                   <i class="fas fa-trash-alt icon-gray"></i>
                 </button>
@@ -131,15 +145,15 @@
         </td>
         <td>
           <div class="btn-group" role="group" aria-label="Basic example">
-            <form th:action="@{/editUser}" method="get">
+            <form th:action="@{/users/editUser/{userId}(userId=${user.id})}" method="get">
               <input type="hidden" name="userId" th:value="${user.id}"/>
               <button type="submit" class="btn btn-white">
                 <i class="fas fa-edit icon-gray"></i>
               </button>
             </form>
-            <form th:action="@{/deleteUser}" method="post">
+            <form th:action="@{/users/{userId}(userId=${user.id})}" method="post">
+              <input type="hidden" name="_method" value="delete"/>
               <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-              <input type="hidden" name="userId" th:value="${user.id}"/>
               <button type="submit" class="btn btn-white">
                 <i class="fas fa-trash-alt icon-gray"></i>
               </button>

@@ -9,14 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
 @Controller
 @PreAuthorize("hasAuthority('DIRECTOR') or hasAuthority('ADMIN')")
+@RequestMapping("/projects")
 public class ProjectController {
     @Autowired
     private ProjectRepo projectRepo;
@@ -27,8 +26,8 @@ public class ProjectController {
     @Autowired
     private UserService userService;
 
-    @GetMapping("/projects")
-    public String main(Model model) {
+    @GetMapping
+    public String projects(Model model) {
 
         model.addAttribute("userAuthentication", userService.returnAuthenticationUserStr());
         model.addAttribute("users", userRepo.findAll());
@@ -37,14 +36,14 @@ public class ProjectController {
         return "projects";
     }
 
-    @GetMapping("/projectEdit")
-    public String task(@RequestParam(name = "projectId", required = false) UUID projectId,
+    @GetMapping({"editProject/{projectId}", "/editProject"})
+    public String projectEdit(@PathVariable(name = "projectId", required = false) UUID projectId,
                        Model model){
 
         if (projectId != null) {
             model.addAttribute("project", projectRepo.findById(projectId).orElse(null));
         }
-        return "projectEdit";
+        return "editProject";
     }
 
     @PostMapping("/addProject")
@@ -57,26 +56,27 @@ public class ProjectController {
         return "redirect:/projects";
     }
 
-    @PostMapping("/addUserToProject")
-    public String addUserToProject(@RequestParam("projectId") UUID projectId,
-                                   @RequestParam("userId") UUID userId) {
+    @PostMapping("/{projectId}/user/{userId}")
+    public String addUserToProject(@PathVariable("projectId") UUID projectId,
+                                   @PathVariable("userId") UUID userId) {
 
         projectService.UserToProject(projectId, userId, 0);
 
         return "redirect:/projects";
     }
 
-    @PostMapping("/removeUserToProject")
-    public String removeUserToProject(@RequestParam("projectId") UUID projectId,
-                                   @RequestParam("userId") UUID userId) {
+    @DeleteMapping("/{projectId}/user/{userId}")
+    public String removeUserToProject(@PathVariable("projectId") UUID projectId,
+                                      @PathVariable("userId") UUID userId) {
 
         projectService.UserToProject(projectId, userId, 1);
 
         return "redirect:/projects";
     }
 
-    @PostMapping("/deleteProject")
-    public String deleteTask(@RequestParam("projectId") UUID projectId) {
+    @DeleteMapping("/{projectId}")
+    public String deleteTask(@PathVariable("projectId") UUID projectId) {
+
         Project project = projectRepo.findById(projectId).orElse(null);
         projectRepo.delete(project);
 

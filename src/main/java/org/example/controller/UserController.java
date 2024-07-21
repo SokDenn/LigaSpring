@@ -9,14 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
 @Controller
 @PreAuthorize("hasAuthority('ADMIN')")
+@RequestMapping("/users")
 public class UserController {
     @Autowired
     private UserRepo userRepo;
@@ -25,7 +24,7 @@ public class UserController {
     @Autowired
     private RoleRepo roleRepo;
 
-    @GetMapping("/users")
+    @GetMapping
     public String users(Model model) {
 
         model.addAttribute("roles", roleRepo.findAll());
@@ -34,8 +33,8 @@ public class UserController {
         return "users";
     }
 
-    @GetMapping("/editUser")
-    public String editUser(@RequestParam(name = "userId", required = false) UUID userId,
+    @GetMapping({"editUser/{userId}", "/editUser"})
+    public String editUser(@PathVariable(name = "userId", required = false) UUID userId,
                            Model model) {
 
         if (userId != null) {
@@ -55,9 +54,9 @@ public class UserController {
         return "redirect:/users";
     }
 
-    @PostMapping("/addRoleToUser")
-    public String addRoleToUser(@RequestParam(name = "userId", required = false) UUID userId,
-                          @RequestParam("roleId") UUID roleId) {
+    @PostMapping("/{userId}/role/{roleId}")
+    public String addRoleToUser(@PathVariable(name = "userId", required = false) UUID userId,
+                                @PathVariable("roleId") UUID roleId) {
         User user = userRepo.findById(userId).orElse(null);
         Role role = roleRepo.findById(roleId).orElse(null);
 
@@ -70,9 +69,9 @@ public class UserController {
         return "redirect:/users";
     }
 
-    @PostMapping("/removeRoleToUser")
-    public String removeRoleToUser(@RequestParam(name = "userId", required = false) UUID userId,
-                                @RequestParam("roleId") UUID roleId) {
+    @DeleteMapping("/{userId}/role/{roleId}")
+    public String removeRoleToUser(@PathVariable(name = "userId") UUID userId,
+                                   @PathVariable("roleId") UUID roleId) {
         User user = userRepo.findById(userId).orElse(null);
         Role role = roleRepo.findById(roleId).orElse(null);
 
@@ -86,8 +85,8 @@ public class UserController {
     }
 
 
-    @PostMapping("/deleteUser")
-    public String deleteTask(@RequestParam("userId") UUID userId) {
+    @DeleteMapping("/{userId}")
+    public String deleteTask(@PathVariable("userId") UUID userId) {
 
         userService.deleteUser(userId);
 

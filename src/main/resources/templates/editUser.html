@@ -46,7 +46,7 @@
     </a>
 
     <ul class="nav nav-pills">
-        <li class="nav-item"><a th:href="@{/main}" class="nav-link">Задачи</a></li>
+        <li class="nav-item"><a th:href="@{/tasks}" class="nav-link">Задачи</a></li>
         <li class="nav-item"><a th:href="@{/projects}" class="nav-link" >Проекты</a></li>
         <li class="nav-item"><a th:href="@{/users}" class="nav-link active" aria-current="page">Пользователи</a></li>
         <li class="nav-item">
@@ -61,7 +61,7 @@
 <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
 
     <div class="col-md-7 col-lg-8">
-        <form class="needs-validation" th:action="@{/addUser}" method="post" onsubmit="return validateForm()">
+        <form class="needs-validation" th:action="@{/users/addUser}" method="post" onsubmit="return validateForm()">
             <div class="row g-6">
                 <input type="hidden" name="userId" th:value="${user != null ? user.id : ''}">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />

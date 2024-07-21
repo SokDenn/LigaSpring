@@ -8,20 +8,20 @@ import org.example.repos.TaskRepo;
 import org.example.repos.UserRepo;
 import org.example.security.SecurityValidator;
 import org.example.service.TaskService;
+import org.example.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.UUID;
 
 @Controller
 @PreAuthorize("hasAuthority('USER') or hasAuthority('DIRECTOR') or hasAuthority('ADMIN')")
+@RequestMapping("/tasks")
 public class TaskController {
     @Autowired
     private TaskRepo taskRepo;
@@ -32,10 +32,35 @@ public class TaskController {
     @Autowired
     private TaskService taskService;
     @Autowired
+    private UserService userService;
+    @Autowired
     private SecurityValidator securityValidator;
+    @GetMapping
+    public String tasks(@RequestParam(name = "userIdFilter", required = false) UUID userIdFilter,
+                       @RequestParam(name = "statusNumberFilter", required = false) Integer statusNumberFilter,
+                       @RequestParam(name = "message", required = false) String message,
+                       Model model) {
 
-    @PostMapping("/updateTaskStatus")
-    public String updateTaskStatus(@RequestParam("taskId") UUID taskId,
+        //Фильтр
+        model.addAttribute("userIdFilter", userIdFilter);
+        model.addAttribute("statusNumberFilter", statusNumberFilter);
+
+        // Сообщение
+        if (message != null && !message.isEmpty()) {
+            model.addAttribute("message", message);
+        }
+
+        model.addAttribute("userAuthentication", userService.returnAuthenticationUserStr());
+        model.addAttribute("statuses", Status.values());
+        model.addAttribute("tasks", taskService.returnFilteredTaskList(userIdFilter, statusNumberFilter));
+        model.addAttribute("users", userRepo.findAll());
+        model.addAttribute("projects", projectRepo.findAll());
+
+        return "tasks";
+    }
+
+    @PostMapping("/{taskId}")
+    public String updateTaskStatus(@PathVariable("taskId") UUID taskId,
                                    @RequestParam("newStatus") int newStatusNumber,
                                    Authentication authentication,
                                    RedirectAttributes redirectAttributes) {
@@ -43,12 +68,12 @@ public class TaskController {
         Task task = taskService.getTaskById(taskId);
         if(!securityValidator.taskValidate(task, authentication)){
             redirectAttributes.addAttribute("message", "Вы обновляете статус не вашей задачи!");
-            return "redirect:/main";
+            return "redirect:/tasks";
         }
 
         taskService.updateTaskStatus(taskId, newStatusNumber);
         redirectAttributes.addFlashAttribute("message", "Статус задачи успешно обновлен!");
-        return "redirect:/main";
+        return "redirect:/tasks";
     }
 
     @PostMapping("/addTask")
@@ -83,33 +108,33 @@ public class TaskController {
         else {
             redirectAttributes.addFlashAttribute("message", "Ошибка добавления задачи! Введите корректные данные");
         }
-        return "redirect:/main";
+        return "redirect:/tasks";
     }
 
-    @PostMapping("/deleteTask")
-    public String deleteTask(@RequestParam("taskId") UUID taskId,
+    @DeleteMapping("{taskId}")
+    public String deleteTask(@PathVariable("taskId") UUID taskId,
                              Authentication authentication,
                              RedirectAttributes redirectAttributes) {
         Task task = taskRepo.findById(taskId).orElse(null);
 
         if(!securityValidator.taskValidate(task, authentication)){
             redirectAttributes.addAttribute("message", "Вы не можете удалить не свою задачу!");
-            return "redirect:/main";
+            return "redirect:/tasks";
         }
         taskRepo.delete(task);
 
-        return "redirect:/main";
+        return "redirect:/tasks";
     }
 
-    @GetMapping("/editTask")
-    public String task(@RequestParam(name = "taskId", required = false) UUID taskId,
+    @GetMapping({"/editTask", "/editTask/{taskId}"})
+    public String task(@PathVariable(name = "taskId", required = false) UUID taskId,
                        Model model,
                        Authentication authentication,
                        RedirectAttributes redirectAttributes){
 
-        if(!securityValidator.taskValidate(taskRepo.findById(taskId).orElse(null), authentication)){
+        if(taskId != null && !securityValidator.taskValidate(taskRepo.findById(taskId).orElse(null), authentication)){
             redirectAttributes.addAttribute("message", "Вы не можете редактировать не свою задачу!");
-            return "redirect:/main";
+            return "redirect:/tasks";
         }
 
         if (taskId != null) {

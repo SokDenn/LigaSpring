@@ -59,7 +59,6 @@
     <li class="nav-item"><a th:href="@{/users}" class="nav-link active">Пользователи</a></li>
     <li class="nav-item">
       <form th:action="@{/logout}" method="post" class="btn btn-secondary">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
         <button type="submit" class="nav-link btn btn-link text-white p-0">Выход</button>
       </form>
     </li>
@@ -73,7 +72,6 @@
 
   <h5>Добавить роль пользователю</h5>
   <form id="addRoleForm" method="post" class="row g-3 mb-3">
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
     <div class="col-md-2">
       <label for="user" class="form-label">Пользователь</label>
       <select id="user" name="userId" class="form-select" required>
@@ -134,7 +132,6 @@
             <li th:each="role : ${user.getRoles()}">
               <form th:action="@{/users/{userId}/role/{roleId}(userId=${user.id}, roleId=${role.id})}" method="post" style="display:inline;">
                 <input type="hidden" name="_method" value="delete"/>
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <span th:text="${role.getName()}"></span>
                 <button type="submit" class="btn btn-link">
                   <i class="fas fa-trash-alt icon-gray"></i>
@@ -153,7 +150,6 @@
             </form>
             <form th:action="@{/users/{userId}(userId=${user.id})}" method="post">
               <input type="hidden" name="_method" value="delete"/>
-              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
               <button type="submit" class="btn btn-white">
                 <i class="fas fa-trash-alt icon-gray"></i>
               </button>

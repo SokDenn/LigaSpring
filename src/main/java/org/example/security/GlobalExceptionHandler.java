@@ -20,6 +20,6 @@ public class GlobalExceptionHandler {
         redirectAttributes.addFlashAttribute("message", "У вас нет прав для выполнения этого действия!");
 
         String referer = request.getHeader("Referer");
-        return new RedirectView(referer != null ? referer : "/main");
+        return new RedirectView(referer != null ? referer : "/tasks");
     }
 }

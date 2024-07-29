@@ -31,7 +31,6 @@
         <li class="nav-item"><a th:href="@{/users}" class="nav-link">Пользователи</a></li>
         <li class="nav-item">
             <form th:action="@{/logout}" method="post" class="btn btn-secondary">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <button type="submit" class="nav-link btn btn-link text-white p-0">Выход</button>
             </form>
         </li>
@@ -44,7 +43,6 @@
         <form class="needs-validation" th:action="@{/projects/addProject}" method="post">
             <div class="row g-6">
                 <input type="hidden" name="projectId" th:value="${project != null ? project.id : ''}">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
 
                 <div class="col-12">
@@ -64,5 +62,6 @@
         </form>
     </div>
 </main>
+
 </body>
 </html>

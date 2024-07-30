@@ -48,7 +48,6 @@ public class UserController {
                           @RequestParam("name") String name,
                           @RequestParam("username") String username,
                           @RequestParam("password") String password) {
-
         userService.addUser(userId, name, username, password);
 
         return "redirect:/users";
@@ -57,14 +56,7 @@ public class UserController {
     @PostMapping("/{userId}/role/{roleId}")
     public String addRoleToUser(@PathVariable(name = "userId", required = false) UUID userId,
                                 @PathVariable("roleId") UUID roleId) {
-        User user = userRepo.findById(userId).orElse(null);
-        Role role = roleRepo.findById(roleId).orElse(null);
-
-        if(user != null && role != null){
-            if(user.getRoles().add(role)){
-                userRepo.save(user);
-            }
-        }
+        userService.addRoleToUser(userId, roleId);
 
         return "redirect:/users";
     }
@@ -72,14 +64,7 @@ public class UserController {
     @DeleteMapping("/{userId}/role/{roleId}")
     public String removeRoleToUser(@PathVariable(name = "userId") UUID userId,
                                    @PathVariable("roleId") UUID roleId) {
-        User user = userRepo.findById(userId).orElse(null);
-        Role role = roleRepo.findById(roleId).orElse(null);
-
-        if(user != null && role != null){
-            if(user.getRoles().remove(role)){
-                userRepo.save(user);
-            }
-        }
+        userService.removeRoleToUser(userId, roleId);
 
         return "redirect:/users";
     }
@@ -87,7 +72,6 @@ public class UserController {
 
     @DeleteMapping("/{userId}")
     public String deleteTask(@PathVariable("userId") UUID userId) {
-
         userService.deleteUser(userId);
 
         return "redirect:/users";

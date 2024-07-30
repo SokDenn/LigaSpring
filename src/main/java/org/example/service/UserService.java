@@ -66,29 +66,60 @@ public class UserService implements UserDetailsService {
     public void deleteUser(UUID id) {
         User user = userRepo.findById(id).orElse(null);
         List<Task> taskList = taskRepo.findByUserId(id);
-        List<Project> projectList = projectRepo.findByUsers_Id(id);
+        List<Project> projectList = projectRepo.findByUsersId(id);
 
-        if(!taskList.isEmpty()){
-            for (Task task : taskList){
+        if (!taskList.isEmpty()) {
+            for (Task task : taskList) {
                 taskRepo.delete(task);
             }
         }
-        if (!projectList.isEmpty()){
-            for (Project project : projectList){
+        if (!projectList.isEmpty()) {
+            for (Project project : projectList) {
                 projectService.UserToProject(project.getId(), id, 1);
             }
         }
         userRepo.delete(user);
 
     }
+
+    public void removeRoleToUser(UUID userId, UUID roleId) {
+        User user = userRepo.findById(userId).orElse(null);
+        Role role = roleRepo.findById(roleId).orElse(null);
+
+        if (user != null && role != null) {
+            if (user.getRoles().remove(role)) {
+                userRepo.save(user);
+            }
+        }
+    }
+
+    public void addRoleToUser(UUID userId, UUID roleId) {
+        User user = userRepo.findById(userId).orElse(null);
+        Role role = roleRepo.findById(roleId).orElse(null);
+
+        if (user != null && role != null) {
+            if (user.getRoles().add(role)) {
+                userRepo.save(user);
+            }
+        }
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepo.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Пользователь с таким логином не найден: " + username));
+        User user;
+        try {
+            user = userRepo.findByUsername(username)
+                    .orElseThrow(() -> new UsernameNotFoundException("Пользователь с таким логином не найден: " + username));
+
+        } catch (UsernameNotFoundException e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+
         return new UserDTO(user);
     }
 
-    public String returnAuthenticationUserStr(){
+    public String returnAuthenticationUserStr() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         return userDetails.getUsername();

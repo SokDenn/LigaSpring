@@ -1,7 +1,8 @@
 package org.example.service;
 
 import org.example.dto.TaskDTO;
-import org.example.model.*;
+import org.example.model.Status;
+import org.example.model.Task;
 import org.example.repos.ProjectRepo;
 import org.example.repos.TaskRepo;
 import org.example.repos.UserRepo;
@@ -12,7 +13,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -45,7 +45,7 @@ public class TaskService {
         }
     }
 
-    public Task createTask(TaskDTO taskDTO) {
+    public boolean addTask(TaskDTO taskDTO) {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
             LocalDate dateOfCompletion = LocalDate.parse(taskDTO.getDateOfCompletionStr(), formatter);
@@ -57,10 +57,12 @@ public class TaskService {
                     .orElseThrow(() -> new IllegalArgumentException("Проекта с таким ID нет")));
 
             Task task = new Task(taskDTO);
-            if (taskDTO.getTaskId() != null){
+            if (taskDTO.getTaskId() != null) {
                 task.setId(taskDTO.getTaskId());
             }
-            return task;
+
+            taskRepo.save(task);
+            return true;
 
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
@@ -68,10 +70,10 @@ public class TaskService {
             System.out.println("Ошибка парсинга даты: " + e.getMessage());
             e.printStackTrace();
         } catch (Exception e) {
-            System.out.println("Ошибка создания задачи: " + e.getMessage());
+            System.out.println("Ошибка добавления задачи: " + e.getMessage());
             e.printStackTrace();
         }
-        return null;
+        return false;
     }
 
 
@@ -93,6 +95,7 @@ public class TaskService {
             return false;
         }
     }
+
     public Task getTaskById(UUID id) {
         return taskRepo.findById(id).orElseThrow(() -> new RuntimeException("Задача не найдена"));
     }

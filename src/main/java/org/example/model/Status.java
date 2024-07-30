@@ -7,6 +7,7 @@ public enum Status {
 
     private final int number;
     private final String title;
+
     private Status(int number, String title) {
         this.number = number;
         this.title = title;
@@ -21,19 +22,20 @@ public enum Status {
     }
 
 
-    public int statusNumber(){
+    public int statusNumber() {
         return number;
     }
+
     public static Status titleOfStatus(String title) {
-        for (Status values: Status.values()){
-            if(values.title.equalsIgnoreCase(title)) return values;
+        for (Status values : Status.values()) {
+            if (values.title.equalsIgnoreCase(title)) return values;
         }
         return null;
     }
 
-    public static Status numberOfStatus(int number_status) {
-        for (Status values: Status.values()){
-            if(values.number == number_status) return values;
+    public static Status numberOfStatus(int numberStatus) {
+        for (Status values : Status.values()) {
+            if (values.number == numberStatus) return values;
         }
         return null;
     }

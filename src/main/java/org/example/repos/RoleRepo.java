@@ -8,5 +8,6 @@ import java.util.UUID;
 
 public interface RoleRepo extends CrudRepository<Role, UUID> {
     Optional<Role> findById(UUID userId);
+
     Optional<Role> findByName(String roleName);
 }

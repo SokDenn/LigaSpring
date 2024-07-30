@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.*;
@@ -82,7 +81,7 @@ public class UserServiceTest {
 
         when(userRepo.findById(user.getId())).thenReturn(Optional.of(user));
         when(taskRepo.findByUserId(user.getId())).thenReturn(tasks);
-        when(projectRepo.findByUsers_Id(user.getId())).thenReturn(projects);
+        when(projectRepo.findByUsersId(user.getId())).thenReturn(projects);
 
         userService.deleteUser(user.getId());
 
@@ -100,7 +99,7 @@ public class UserServiceTest {
 
         when(userRepo.findById(user.getId())).thenReturn(Optional.of(user));
         when(taskRepo.findByUserId(user.getId())).thenReturn(emptyTaskList);
-        when(projectRepo.findByUsers_Id(user.getId())).thenReturn(emptyProjectList);
+        when(projectRepo.findByUsersId(user.getId())).thenReturn(emptyProjectList);
 
         userService.deleteUser(user.getId());
 

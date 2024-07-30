@@ -73,7 +73,7 @@ public class TaskRepoTest {
     void testFindByUserIdAndStatus() {
         List<Task> tasks = taskRepo.findByUserIdAndStatus(user1.getId(), Status.NEW);
 
-        assertEquals(2L, tasks.size());
+        assertEquals(2, tasks.size());
         assertEquals("Задача 1",tasks.get(0).getHeading());
         assertEquals("Описание 2",tasks.get(1).getDescription());
     }

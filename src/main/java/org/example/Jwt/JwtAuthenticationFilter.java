@@ -12,13 +12,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+
 @Component
-public class JwtAuthenticationFilter extends OncePerRequestFilter{
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtil jwtUtil;
     @Autowired
@@ -28,9 +28,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        request.getHeaderNames().asIterator().forEachRemaining(headerName -> {
-            System.out.println(headerName + ": " + request.getHeader(headerName));
-        });
+        //request.getHeaderNames().asIterator().forEachRemaining(headerName -> {
+        //  System.out.println(headerName + ": " + request.getHeader(headerName));
+        //});
 
         final String requestTokenHeader = request.getHeader("Authorization");
 
@@ -66,11 +66,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
             }
         }
 
-        if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-            if(jwtUtil.validateToken(jwtToken, userDetails)){
+            if (userDetails != null && jwtUtil.validateToken(jwtToken, userDetails)) {
                 UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,

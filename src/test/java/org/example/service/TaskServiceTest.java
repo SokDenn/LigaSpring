@@ -61,24 +61,49 @@ public class TaskServiceTest {
     }
 
     @Test
-    public void testCreateTask() {
+    public void testAddTaskSuccess() {
         TaskDTO taskDTO = new TaskDTO();
-        taskDTO.setDateOfCompletionStr("01.01.2024");
+        taskDTO.setDateOfCompletionStr("29.07.2024");
         taskDTO.setUserId(UUID.randomUUID());
         taskDTO.setProjectId(UUID.randomUUID());
-        User user = new User();
-        Project project = new Project();
 
-        when(userRepo.findById(taskDTO.getUserId())).thenReturn(Optional.of(user));
-        when(projectRepo.findById(taskDTO.getProjectId())).thenReturn(Optional.of(project));
+        when(userRepo.findById(taskDTO.getUserId())).thenReturn(Optional.of(new User()));
+        when(projectRepo.findById(taskDTO.getProjectId())).thenReturn(Optional.of(new Project()));
 
-        Task task = taskService.createTask(taskDTO);
+        boolean result = taskService.addTask(taskDTO);
 
-        assertNotNull(task);
-        assertEquals(LocalDate.of(2024, 1, 1), task.getDateOfCompletion());
-        assertEquals(user, task.getUser());
-        assertEquals(project, task.getProject());
+        assertTrue(result);
+        verify(taskRepo, times(1)).save(any(Task.class));
     }
+    @Test
+    public void testAddTaskProjectNotFound() {
+        TaskDTO taskDTO = new TaskDTO();
+        taskDTO.setDateOfCompletionStr("29.07.2024");
+        taskDTO.setUserId(UUID.randomUUID());
+        taskDTO.setProjectId(UUID.randomUUID());
+
+        when(userRepo.findById(taskDTO.getUserId())).thenReturn(Optional.of(new User()));
+        when(projectRepo.findById(taskDTO.getProjectId())).thenReturn(Optional.empty());
+
+        boolean result = taskService.addTask(taskDTO);
+
+        assertFalse(result);
+        verify(taskRepo, times(0)).save(any(Task.class));
+    }
+
+    @Test
+    public void testAddTaskDateParsingError() {
+        TaskDTO taskDTO = new TaskDTO();
+        taskDTO.setDateOfCompletionStr("Ошибка парсинга даты");
+        taskDTO.setUserId(UUID.randomUUID());
+        taskDTO.setProjectId(UUID.randomUUID());
+
+        boolean result = taskService.addTask(taskDTO);
+
+        assertFalse(result);
+        verify(taskRepo, times(0)).save(any(Task.class));
+    }
+
     @Test
     public void testUpdateTaskStatus() {
         UUID taskId = UUID.randomUUID();

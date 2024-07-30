@@ -85,33 +85,31 @@ public class TaskController {
                           @RequestParam("projectId") UUID projectId,
                           RedirectAttributes redirectAttributes) {
 
-
         TaskDTO taskDTO = new TaskDTO();
+
         if(taskId != null) {
-            redirectAttributes.addFlashAttribute("message", "Задача успешно обновлена!");
             taskDTO.setTaskId(taskId);
             taskDTO.setStatus(taskService.getTaskById(taskId).getStatus());
-
+            redirectAttributes.addFlashAttribute("message", "Задача успешно обновлена!");
         } else {
             taskDTO.setStatus(Status.NEW);
             redirectAttributes.addFlashAttribute("message", "Задача успешно добавлена!");
         }
+
         taskDTO.setHeading(heading);
         taskDTO.setDescription(description);
         taskDTO.setDateOfCompletionStr(dateOfCompletionStr);
         taskDTO.setUserId(userId);
         taskDTO.setProjectId(projectId);
 
-        Task newTask = taskService.createTask(taskDTO);
-        if(newTask != null) {
-            taskRepo.save(newTask);}
-        else {
+        boolean result = taskService.addTask(taskDTO);
+        if(!result) {
             redirectAttributes.addFlashAttribute("message", "Ошибка добавления задачи! Введите корректные данные");
         }
         return "redirect:/tasks";
     }
 
-    @DeleteMapping("{taskId}")
+    @DeleteMapping("/{taskId}")
     public String deleteTask(@PathVariable("taskId") UUID taskId,
                              Authentication authentication,
                              RedirectAttributes redirectAttributes) {

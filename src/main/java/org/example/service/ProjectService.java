@@ -14,6 +14,7 @@ import java.util.UUID;
 public class ProjectService {
     private final UserRepo userRepo;
     private final ProjectRepo projectRepo;
+
     @Autowired
     public ProjectService(UserRepo userRepo, ProjectRepo projectRepo) {
         this.userRepo = userRepo;
@@ -27,7 +28,7 @@ public class ProjectService {
         if (id != null) {
             newProject.setId(id);
             Set<User> users = projectRepo.findById(id).get().getUsers();
-            if(users!= null) newProject.setUsers(users);
+            if (users != null) newProject.setUsers(users);
             System.out.printf("Проект с ID = %s перезаписан\n", newProject.getId());
         } else {
             System.out.printf("Проект с ID = %s добавлен\n", id);
@@ -41,28 +42,39 @@ public class ProjectService {
         Project project = projectRepo.findById(projectId).orElse(null);
         User user = userRepo.findById(userId).orElse(null);
 
-        if(user != null && project != null){
+        if (user != null && project != null) {
             Set<User> users = project.getUsers();
 
-            if(switchToRemove == 0 && !isUserInProject(projectId, userId))
+            if (switchToRemove == 0 && !isUserInProject(projectId, userId)) {
                 users.add(user);
+            }
 
-            if(switchToRemove == 1) users.remove(user);
+            if (switchToRemove == 1 && isUserInProject(projectId, userId)) {
+                users.remove(user);
+            }
 
             project.setUsers(users);
             projectRepo.save(project);
             return true;
-        }
-        else return false;
+        } else return false;
     }
 
     public Boolean isUserInProject(UUID projectId, UUID userId) {
         Project project = projectRepo.findById(projectId).orElse(null);
 
-        if(project != null){
+        if (project != null) {
             return project.getUsers().stream()
                     .anyMatch(user -> user.getId().equals(userId));
-        }
-        else return false;
+        } else return false;
+    }
+
+    public Boolean deleteProject(UUID projectId) {
+        Project project = projectRepo.findById(projectId).orElse(null);
+
+        if (project != null) {
+            projectRepo.delete(project);
+            return true;
+
+        } else return false;
     }
 }

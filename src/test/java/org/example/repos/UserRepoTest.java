@@ -1,5 +1,8 @@
 package org.example.repos;
 
+import jakarta.transaction.Transactional;
+import org.example.model.Project;
+import org.example.model.Task;
 import org.example.model.User;
 import org.example.repos.ProjectRepo;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,9 +32,12 @@ public class UserRepoTest {
 
     @BeforeEach
     void setUp() {
+        for(Project project : projectRepo.findAll()){
+            project.getUsers().clear();
+        }
         taskRepo.deleteAll();
-        projectRepo.deleteAll();
         userRepo.deleteAll();
+
         user1 = new User("Дачник 1", "login1", "123123");
         user2 = new User("Дачник 2", "login2", "123123");
 

@@ -1,6 +1,7 @@
 package org.example.controller;
 
 import org.example.model.Project;
+import org.example.model.User;
 import org.example.repos.ProjectRepo;
 import org.example.repos.UserRepo;
 import org.example.service.ProjectService;
@@ -28,7 +29,6 @@ public class ProjectController {
 
     @GetMapping
     public String projects(Model model) {
-
         model.addAttribute("userAuthentication", userService.returnAuthenticationUserStr());
         model.addAttribute("users", userRepo.findAll());
         model.addAttribute("projects", projectRepo.findAll());
@@ -77,8 +77,7 @@ public class ProjectController {
     @DeleteMapping("/{projectId}")
     public String deleteTask(@PathVariable("projectId") UUID projectId) {
 
-        Project project = projectRepo.findById(projectId).orElse(null);
-        projectRepo.delete(project);
+        projectService.deleteProject(projectId);
 
         return "redirect:/projects";
     }

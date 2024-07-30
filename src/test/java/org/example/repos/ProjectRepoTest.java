@@ -28,7 +28,6 @@ public class ProjectRepoTest {
     private Project project1, project2;
     @BeforeEach
     void setUp() {
-        projectRepo.deleteAll();
         user1 = new User("Дачник 1", "login1", "123123");
         user2 = new User("Шашлык 2", "login2", "123123");
 
@@ -60,10 +59,10 @@ public class ProjectRepoTest {
 
     @Test
     void testFindByUsers_Id() {
-        List<Project> projects = projectRepo.findByUsers_Id(user1.getId());
+        List<Project> projects = projectRepo.findByUsersId(user1.getId());
         assertEquals(2, projects.size());
 
-        projects = projectRepo.findByUsers_Id(user2.getId());
+        projects = projectRepo.findByUsersId(user2.getId());
         assertEquals(1, projects.size());
         assertEquals("Заголовок 2", projects.get(0).getHeading());
     }

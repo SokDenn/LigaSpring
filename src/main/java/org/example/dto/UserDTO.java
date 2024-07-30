@@ -1,5 +1,6 @@
 package org.example.dto;
 
+import lombok.Data;
 import org.example.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -7,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
-
+@Data
 public class UserDTO implements UserDetails {
     private final UUID id;
     private final String username;
@@ -21,14 +22,6 @@ public class UserDTO implements UserDetails {
         this.password = user.getPassword();
         this.active = user.isActive();
         this.authorities = user.getRoles();
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public boolean isActive() {
-        return active;
     }
 
     @Override
@@ -45,7 +38,6 @@ public class UserDTO implements UserDetails {
     public String getUsername() {
         return username;
     }
-
     @Override
     public boolean isAccountNonExpired() {
         return true;
